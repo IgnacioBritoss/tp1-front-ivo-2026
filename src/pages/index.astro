@@ -1,0 +1,179 @@
+---
+const pageTitle = "Quiniela Britos";
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div class="themeToggleWrap">
+      <button id="themeToggle" class="themeToggle" type="button" aria-label="Cambiar tema">
+        Claro
+      </button>
+    </div>
+
+    <main class="container">
+      <section class="card">
+        <div class="header simpleHeader">
+          <div class="brand">
+            <div class="logo logo-image">
+              <img src="/tero.png" alt="Logo tero" />
+            </div>
+            <div>
+              <h1>Quiniela Britos</h1>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid grid-2">
+        <div class="card">
+          <div class="section">
+            <div class="panel" style="margin-bottom:14px;">
+              <h3>Preparar boleta</h3>
+
+              <div class="controlsWrap">
+                <div class="field" style="grid-column: span 3;">
+                  <label for="cantidad">Cantidad de números</label>
+                  <input type="number" id="cantidad" min="1" max="25" value="3" />
+                </div>
+
+                <div class="field" style="grid-column: span 3;">
+                  <label for="cantidadSorteos">Cantidad de sorteos</label>
+                  <input type="number" id="cantidadSorteos" min="1" max="50" value="1" />
+                </div>
+
+                <div class="field actionsField" style="grid-column: span 6;">
+                  <label>Acciones</label>
+                  <div class="actionRow equalButtons">
+                    <button class="btn-primary" type="button" onclick="crearTabla()">Crear / actualizar</button>
+                    <button class="btn-ghost" type="button" onclick="limpiarJugadas()">Limpiar boleta</button>
+                    <button class="btn-classic" type="button" onclick="cargarJugadaClasica()">Cargar jugada clásica</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel" style="margin-bottom:14px;">
+              <h3>Carga rápida de montos</h3>
+
+              <div class="controlsWrap montosGrid" style="margin-top:12px;">
+                <div class="field montoField">
+                  <label for="montoMasivo">Monto</label>
+                  <input type="number" id="montoMasivo" min="0" step="1" value="100" />
+                </div>
+
+                <div class="field aplicarField">
+                  <label>Aplicar a</label>
+                  <div class="actionRow actionRowAplicar">
+                    <button class="btn-soft" type="button" onclick="aplicarMontoMasivo('cabeza')">Cabeza</button>
+                    <button class="btn-soft" type="button" onclick="aplicarMontoMasivo('cinco')">A los 5</button>
+                    <button class="btn-soft" type="button" onclick="aplicarMontoMasivo('diez')">A los 10</button>
+                  </div>
+
+                  <div class="actionRow actionRowSecundaria">
+                    <button class="btn-warning" type="button" onclick="aplicarMontoMasivo('todos')">Los 3 campos</button>
+                    <button class="btn-ghost" type="button" onclick="vaciarMontos()">Vaciar montos</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="quickButtons quickButtonsCentered" style="margin-top:12px;">
+                <button type="button" class="btn-ghost" onclick="setMontoRapido(50)">$50</button>
+                <button type="button" class="btn-ghost" onclick="setMontoRapido(100)">$100</button>
+                <button type="button" class="btn-ghost" onclick="setMontoRapido(200)">$200</button>
+                <button type="button" class="btn-ghost" onclick="setMontoRapido(500)">$500</button>
+                <button type="button" class="btn-ghost" onclick="setMontoRapido(1000)">$1000</button>
+              </div>
+            </div>
+
+            <div class="tableWrap">
+              <table id="tabla">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Número</th>
+                    <th>Cifras</th>
+                    <th>Cabeza $</th>
+                    <th>A los 5 $</th>
+                    <th>A los 10 $</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <div class="actionRow bottomMainActions" style="margin-top:14px;">
+              <button class="btn-success" type="button" onclick="jugar()">Jugar ahora</button>
+              <button class="btn-primary" type="button" onclick="verHistorial()">Ver estadísticas</button>
+              <button class="btn-danger" type="button" onclick="resetearHistorial()">Reset estadísticas</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section">
+            <div class="summaryBox">
+              <div class="statCards">
+                <div class="stat">
+                  <span>Números</span>
+                  <strong id="numerosBoleta">0</strong>
+                </div>
+                <div class="stat">
+                  <span>Sorteos a jugar</span>
+                  <strong id="sorteosBoleta">1</strong>
+                </div>
+                <div class="stat">
+                  <span>Total apostado</span>
+                  <strong id="totalApostado">$0</strong>
+                </div>
+              </div>
+
+              <div class="luckyPanel">
+                <div class="luckyHeader">
+                  <div>
+                    <h3>Número de la suerte</h3>
+                  </div>
+                  <button id="luckySpinBtn" class="btn-warning" type="button">Girar</button>
+                </div>
+
+                <div class="luckyBox" id="luckyBox">---</div>
+                <div class="luckyHint" id="luckyLabel">Todavía no se generó ningún número.</div>
+              </div>
+
+              <div class="ticket">
+                <div class="ticketHeader">
+                  <div>
+                    <div class="ticketTitle">Boleta actual</div>
+                  </div>
+                </div>
+                <div id="ticketContenido" class="empty">Cargá tus números y montos para ver la boleta.</div>
+              </div>
+
+              <div id="sorteo" class="sorteoBox hide">
+                <h3 style="margin:0;">Sorteos generados</h3>
+                <div id="sorteosLista" class="sorteosLista"></div>
+              </div>
+
+              <div id="resultado" class="resultados hide"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="estadisticasCard" class="card hide">
+        <div class="section">
+          <h2 style="margin-top:0;">Estadísticas generales</h2>
+          <div id="estadisticas"></div>
+        </div>
+      </section>
+    </main>
+
+    <script is:inline src="/main.js"></script>
+  </body>
+</html>

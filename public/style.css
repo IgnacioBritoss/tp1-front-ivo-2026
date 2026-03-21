@@ -821,3 +821,39 @@ body.dark .messageBox.error{
         justify-content:center;
     }
 }
+
+
+.cifrasBtn{
+    width:92px;
+    margin:auto;
+    display:block;
+
+    padding:12px;
+    border-radius:13px;
+    border:1px solid var(--line);
+    background:var(--bg-2);
+    color:var(--text);
+    font-size:15px;
+    font-weight:normal;
+    outline:none;
+    transition:.18s;
+
+    appearance:none;
+    -webkit-appearance:none;
+    -moz-appearance:none;
+
+    box-shadow:none;
+}
+
+.cifrasBtn:hover{
+    transform:none;
+}
+
+.cifrasBtn:focus{
+    border-color:var(--blue);
+    box-shadow:0 0 0 4px rgba(47,78,161,.12);
+}
+
+.cifrasBtn:active{
+    transform:none;
+}

@@ -1,1 +1,25 @@
 https://tp1-front-ivo-2026.vercel.app/
+
+Cómo jugar.
+
+Primero tenés que elegir cuántos números querés cargar en tu jugada.
+
+En la Instantánea, cada boleta genera un sorteo de 10 números de 3 cifras, y el objetivo es acertar esos resultados según la modalidad en la que apuestes.
+
+Podés jugar números de 2 cifras o de 3 cifras, asignando un monto distinto a cada apuesta.
+
+Tenés tres formas de jugar: a la cabeza, donde tu número debe salir en el primer puesto; a los 5, donde debe aparecer entre los primeros cinco números; y a los 10, donde puede salir en cualquiera de los diez resultados de la boleta.
+
+En la opción de cantidad de sorteos también podés elegir cuántas boletas querés generar al mismo tiempo, para no tener que cargarlas una por una.
+
+Una vez que completás los números, los montos y la cantidad de sorteos, solo queda generar la jugada y revisar los resultados.
+
+Además, en la sección de estadísticas, cada vez que tocás Ver estadísticas se actualiza la información para mostrar cuánto gastaste, cuánto ganaste, tu balance general y cuáles fueron los números que más salieron y los que menos aparecieron.
+
+Pagos por cada peso apostado
+
+En números de 3 cifras, a la cabeza paga $70 por cada $1 apostado.
+
+En números de 2 cifras, a los 5 paga $7 por cada $1 apostado.
+
+En números de 2 cifras, a los 10 paga $7 por cada $1 apostado.

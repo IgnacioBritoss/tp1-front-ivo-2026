@@ -20,7 +20,7 @@ let resumenGeneral = {
 };
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Inicia el tema, carga los datos guardados, arma la tabla inicial
+    // inicia el tema, carga los datos guardados, arma la tabla inicial
     // y actualiza la vista de la boleta y asigna los eventos a los botones
     iniciarTema();
     cargarDatos();
@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function iniciarTema() {
-    // Lee el tema guardado y lo aplica.
+    // lee el tema guardado y lo aplica.
     let guardado = localStorage.getItem("instantanea_tema");
 
     if (guardado === "dark") {
@@ -69,7 +69,7 @@ function iniciarTema() {
 }
 
 function actualizarIconoTema() {
-    // Cambia el texto del boton segun el tema.
+    // cambia el texto del boton segun el tema.
     let toggle = document.getElementById("themeToggle");
 
     if (toggle) {
@@ -82,7 +82,7 @@ function actualizarIconoTema() {
 }
 
 function mostrarMensaje(texto, tipo) {
-    // Muestra un mensaje arriba de la pagina.
+    // muestra un mensaje arriba de la pagina.
     if (!tipo) {
         tipo = "info";
     }
@@ -109,7 +109,7 @@ function mostrarMensaje(texto, tipo) {
 }
 
 function guardarDatos() {
-    // Guarda historial, frecuencias y resumen general.
+    // guarda historial, frecuencias y resumen general.
     localStorage.setItem("instantanea_historialSorteos", JSON.stringify(historialSorteos));
     localStorage.setItem("instantanea_frecuencia2", JSON.stringify(frecuencia2Cifras));
     localStorage.setItem("instantanea_frecuencia3", JSON.stringify(frecuencia3Cifras));
@@ -117,7 +117,7 @@ function guardarDatos() {
 }
 
 function cargarDatos() {
-    // Recupera lo que ya estaba guardado.
+    // recupera lo que ya estaba guardado.
     let h = localStorage.getItem("instantanea_historialSorteos");
     let f2 = localStorage.getItem("instantanea_frecuencia2");
     let f3 = localStorage.getItem("instantanea_frecuencia3");
@@ -210,7 +210,7 @@ function crearFilaHTML(index, data) {
 }
 
 function crearTabla() {
-    // Crea la cantidad de filas pedida por el usuario.
+    // crea la cantidad de filas pedida por el usuario.
     let cantidad = parseInt(document.getElementById("cantidad").value);
     if (!cantidad || cantidad < 1) {
         cantidad = 3;
@@ -228,7 +228,7 @@ function crearTabla() {
 }
 
 function alternarCifras(boton) {
-    // Cambia una fila entre 2 y 3 cifras.
+    // cambia una fila entre 2 y 3 cifras.
     let fila = boton.closest("tr");
     let inputCifras = fila.querySelector(".cifras");
     let inputNumero = fila.querySelector(".numero");
@@ -248,7 +248,7 @@ function alternarCifras(boton) {
 }
 
 function cargarJugadaClasica() {
-    // Carga una jugada ejemplo ya armada.
+    // es la jugada con la que gane plata en el verano y cuando voy me dicen la clasica y quedo.
     let tbody = document.querySelector("#tabla tbody");
 
     let clasica = [
@@ -280,7 +280,7 @@ function reindexarFilas() {
 }
 
 function limpiarJugadas() {
-    // Limpia toda la boleta actual.
+    // limpia toda la boleta actual.
     let filas = document.querySelectorAll("#tabla tbody tr");
 
     for (let i = 0; i < filas.length; i++) {
@@ -304,7 +304,7 @@ function limpiarJugadas() {
 }
 
 function vaciarMontos() {
-    // Pone en cero todos los importes.
+    // pone en cero todos los importes.
     let inputs = document.querySelectorAll(".cabeza, .cinco, .diez");
 
     for (let i = 0; i < inputs.length; i++) {

@@ -490,15 +490,12 @@ function actualizarPreview() {
 }
 
 function generarSorteo() {
-    // Genera 10 numeros distintos entre 000 y 999.
-    let nums = [];
+    // Genera 10 numeros entre 000 y 999.
+     let nums = [];
 
     while (nums.length < 10) {
         let n = Math.floor(Math.random() * 1000);
-
-        if (nums.indexOf(n) === -1) {
-            nums.push(n);
-        }
+        nums.push(n);
     }
 
     return nums;

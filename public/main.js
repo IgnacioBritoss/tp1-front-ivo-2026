@@ -187,10 +187,15 @@ function crearFilaHTML(index, data) {
         diez = data.diez;
     }
 
-    let placeholderNumero = "67";
-    if (cifras === 2) {
-        placeholderNumero = "677";
-    }
+    let placeholderNumero = "7";
+
+if (cifras === 2) {
+    placeholderNumero = "67";
+}
+
+if (cifras === 3) {
+    placeholderNumero = "677";
+}
 
     return `
         <tr>
@@ -228,7 +233,7 @@ function crearTabla() {
 }
 
 function alternarCifras(boton) {
-    // cambia una fila entre 2 y 3 cifras.
+    // cambia una fila entre 3, 2 y 1 cifra.
     let fila = boton.closest("tr");
     let inputCifras = fila.querySelector(".cifras");
     let inputNumero = fila.querySelector(".numero");
@@ -237,6 +242,10 @@ function alternarCifras(boton) {
         inputCifras.value = "2";
         boton.textContent = "2";
         inputNumero.placeholder = "67";
+    } else if (inputCifras.value === "2") {
+        inputCifras.value = "1";
+        boton.textContent = "1";
+        inputNumero.placeholder = "7";
     } else {
         inputCifras.value = "3";
         boton.textContent = "3";
@@ -349,11 +358,13 @@ function aplicarMontoMasivo(tipo) {
 }
 
 function ajustarSegunCifras(inputNumero) {
-    // Limita el numero segun se juegue a 2 o 3 cifras.
+    // Limita el numero segun se juegue a 1, 2 o 3 cifras.
     let fila = inputNumero.closest("tr");
     let cifras = parseInt(fila.querySelector(".cifras").value);
 
-    if (cifras === 2) {
+    if (cifras === 1) {
+        inputNumero.max = 9;
+    } else if (cifras === 2) {
         inputNumero.max = 99;
     } else {
         inputNumero.max = 999;
@@ -363,6 +374,10 @@ function ajustarSegunCifras(inputNumero) {
         let valor = parseInt(inputNumero.value);
         if (!valor) {
             valor = 0;
+        }
+
+        if (cifras === 1 && valor > 9) {
+            valor = valor % 10;
         }
 
         if (cifras === 2 && valor > 99) {
@@ -394,13 +409,18 @@ function obtenerJugadasDesdeTabla() {
             let numero = parseInt(numeroRaw);
 
             if (!isNaN(numero)) {
-                if (cifras === 2) {
-                    numero = numero % 100;
-                }
 
-                if (cifras === 3) {
-                    numero = numero % 1000;
-                }
+            if (cifras === 1) {
+                numero = numero % 10;
+            }
+
+            if (cifras === 2) {
+                  numero = numero % 100;
+            }
+
+            if (cifras === 3) {
+              numero = numero % 1000;
+            }       
 
                 if (cabeza > 0 || cinco > 0 || diez > 0) {
                     jugadas.push({
@@ -557,23 +577,37 @@ function calcularPremioDeUnSorteo(jugadas, sorteo) {
         let numComp;
         let sorteoComp = [];
 
-        if (j.cifras === 2) {
+        if (j.cifras === 1) {
+            numComp = j.numero % 10;
+        } else if (j.cifras === 2) {
             numComp = j.numero % 100;
         } else {
             numComp = j.numero;
         }
 
         for (let k = 0; k < sorteo.length; k++) {
-            if (j.cifras === 2) {
+            if (j.cifras === 1) {
+                sorteoComp.push(sorteo[k] % 10);
+            } else if (j.cifras === 2) {
                 sorteoComp.push(sorteo[k] % 100);
             } else {
                 sorteoComp.push(sorteo[k]);
             }
         }
 
+        let pagaCabeza = 70;
+        let pagaCinco = 14;
+        let pagaDiez = 7;
+
+        if (j.cifras === 1) {
+            pagaCabeza = 7;
+            pagaCinco = 7;
+            pagaDiez = 7;
+        }
+
         // VERIFICAR SI GANO A LA CABEZA
         if (j.cabeza > 0 && numComp === sorteoComp[0]) {
-            let gana = j.cabeza * 70;
+            let gana = j.cabeza * pagaCabeza;
             premio += gana;
             aciertos.push({
                 numero: completarConCeros(j.numero, j.cifras),
@@ -593,7 +627,7 @@ function calcularPremioDeUnSorteo(jugadas, sorteo) {
 
         // VERIFICAR SI GANO A LOS 5
         if (j.cinco > 0 && estaEnCinco) {
-            let gana = j.cinco * 14;
+            let gana = j.cinco * pagaCinco;
             premio += gana;
             aciertos.push({
                 numero: completarConCeros(j.numero, j.cifras),
@@ -613,7 +647,7 @@ function calcularPremioDeUnSorteo(jugadas, sorteo) {
 
         // VERIFICAR SI GANO A LOS 10
         if (j.diez > 0 && estaEnDiez) {
-            let gana = j.diez * 7;
+            let gana = j.diez * pagaDiez;
             premio += gana;
             aciertos.push({
                 numero: completarConCeros(j.numero, j.cifras),

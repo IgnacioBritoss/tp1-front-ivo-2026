@@ -1,8 +1,6 @@
 # Quiniela Britos
  Ignacio Britos 5A
 
-Proyecto escolar hecho con **Astro** para la actividad diagnóstica de Frontend.
-
 ## Descripción
 Esta mini app permite:
 - generar jugadas de quiniela,

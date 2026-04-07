@@ -215,7 +215,6 @@ if (cifras === 3) {
 }
 
 function crearTabla() {
-    // crea la cantidad de filas pedida por el usuario.
     let cantidad = parseInt(document.getElementById("cantidad").value);
     if (!cantidad || cantidad < 1) {
         cantidad = 3;
@@ -228,12 +227,32 @@ function crearTabla() {
         tbody.innerHTML += crearFilaHTML(i);
     }
 
+    let filas = document.querySelectorAll("#tabla tbody tr");
+    for (let i = 0; i < filas.length; i++) {
+        actualizarEstadoApuestasFila(filas[i]);
+    }
+
     reindexarFilas();
     actualizarPreview();
 }
 
+function actualizarEstadoApuestasFila(fila) {
+    let cifras = parseInt(fila.querySelector(".cifras").value);
+    let inputCinco = fila.querySelector(".cinco");
+    let inputDiez = fila.querySelector(".diez");
+
+    if (cifras === 1) {
+        inputCinco.value = 0;
+        inputDiez.value = 0;
+        inputCinco.disabled = true;
+        inputDiez.disabled = true;
+    } else {
+        inputCinco.disabled = false;
+        inputDiez.disabled = false;
+    }
+}
+
 function alternarCifras(boton) {
-    // cambia una fila entre 3, 2 y 1 cifra.
     let fila = boton.closest("tr");
     let inputCifras = fila.querySelector(".cifras");
     let inputNumero = fila.querySelector(".numero");
@@ -253,11 +272,11 @@ function alternarCifras(boton) {
     }
 
     ajustarSegunCifras(inputNumero);
+    actualizarEstadoApuestasFila(fila);
     actualizarPreview();
 }
 
 function cargarJugadaClasica() {
-    // es la jugada con la que gane plata en el verano y cuando voy me dicen la clasica y quedo.
     let tbody = document.querySelector("#tabla tbody");
 
     let clasica = [
@@ -270,6 +289,11 @@ function cargarJugadaClasica() {
 
     for (let i = 0; i < clasica.length; i++) {
         tbody.innerHTML += crearFilaHTML(i, clasica[i]);
+    }
+
+    let filas = document.querySelectorAll("#tabla tbody tr");
+    for (let i = 0; i < filas.length; i++) {
+        actualizarEstadoApuestasFila(filas[i]);
     }
 
     document.getElementById("cantidad").value = 3;
@@ -289,7 +313,6 @@ function reindexarFilas() {
 }
 
 function limpiarJugadas() {
-    // limpia toda la boleta actual.
     let filas = document.querySelectorAll("#tabla tbody tr");
 
     for (let i = 0; i < filas.length; i++) {
@@ -303,6 +326,7 @@ function limpiarJugadas() {
         tr.querySelector(".cinco").value = 0;
         tr.querySelector(".diez").value = 0;
         ajustarSegunCifras(tr.querySelector(".numero"));
+        actualizarEstadoApuestasFila(tr);
     }
 
     sorteosGlobal = [];
@@ -330,7 +354,6 @@ function setMontoRapido(valor) {
 }
 
 function aplicarMontoMasivo(tipo) {
-    // Copia el mismo monto en una columna o en todas.
     let monto = parseInt(document.getElementById("montoMasivo").value);
     if (!monto) {
         monto = 0;
@@ -340,16 +363,17 @@ function aplicarMontoMasivo(tipo) {
 
     for (let i = 0; i < filas.length; i++) {
         let fila = filas[i];
+        let cifras = parseInt(fila.querySelector(".cifras").value);
 
         if (tipo === "cabeza" || tipo === "todos") {
             fila.querySelector(".cabeza").value = monto;
         }
 
-        if (tipo === "cinco" || tipo === "todos") {
+        if ((tipo === "cinco" || tipo === "todos") && cifras !== 1) {
             fila.querySelector(".cinco").value = monto;
         }
 
-        if (tipo === "diez" || tipo === "todos") {
+        if ((tipo === "diez" || tipo === "todos") && cifras !== 1) {
             fila.querySelector(".diez").value = monto;
         }
     }
@@ -595,15 +619,15 @@ function calcularPremioDeUnSorteo(jugadas, sorteo) {
             }
         }
 
-        let pagaCabeza = 70;
-        let pagaCinco = 14;
-        let pagaDiez = 7;
+let pagaCabeza = 70;
+let pagaCinco = 14;
+let pagaDiez = 7;
 
-        if (j.cifras === 1) {
-            pagaCabeza = 7;
-            pagaCinco = 7;
-            pagaDiez = 7;
-        }
+if (j.cifras === 1) {
+    pagaCabeza = 7;
+    pagaCinco = 0;
+    pagaDiez = 0;
+}
 
         // VERIFICAR SI GANO A LA CABEZA
         if (j.cabeza > 0 && numComp === sorteoComp[0]) {
@@ -626,16 +650,16 @@ function calcularPremioDeUnSorteo(jugadas, sorteo) {
         }
 
         // VERIFICAR SI GANO A LOS 5
-        if (j.cinco > 0 && estaEnCinco) {
-            let gana = j.cinco * pagaCinco;
-            premio += gana;
-            aciertos.push({
-                numero: completarConCeros(j.numero, j.cifras),
-                tipo: "A los 5",
-                importe: j.cinco,
-                premio: gana
-            });
-        }
+        if (j.cifras !== 1 && j.cinco > 0 && estaEnCinco) {
+    let gana = j.cinco * pagaCinco;
+    premio += gana;
+    aciertos.push({
+        numero: completarConCeros(j.numero, j.cifras),
+        tipo: "A los 5",
+        importe: j.cinco,
+        premio: gana
+    });
+}
 
         let estaEnDiez = false;
         for (let b = 0; b < sorteoComp.length; b++) {
@@ -646,16 +670,16 @@ function calcularPremioDeUnSorteo(jugadas, sorteo) {
         }
 
         // VERIFICAR SI GANO A LOS 10
-        if (j.diez > 0 && estaEnDiez) {
-            let gana = j.diez * pagaDiez;
-            premio += gana;
-            aciertos.push({
-                numero: completarConCeros(j.numero, j.cifras),
-                tipo: "A los 10",
-                importe: j.diez,
-                premio: gana
-            });
-        }
+        if (j.cifras !== 1 && j.diez > 0 && estaEnDiez) {
+    let gana = j.diez * pagaDiez;
+    premio += gana;
+    aciertos.push({
+        numero: completarConCeros(j.numero, j.cifras),
+        tipo: "A los 10",
+        importe: j.diez,
+        premio: gana
+    });
+}
     }
 
     return {

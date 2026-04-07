@@ -1,4 +1,5 @@
-# Quiniela Interactiva
+# Quiniela Britos
+ Ignacio Britos 5A
 
 Proyecto escolar hecho con **Astro** para la actividad diagnóstica de Frontend.
 

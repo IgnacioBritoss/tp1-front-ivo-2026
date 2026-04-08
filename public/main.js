@@ -141,6 +141,7 @@ function cargarDatos() {
 }
 
 function formatearDinero(n) {
+    // convierte un numero al formato de dinero argentino.
     return "$" + Number(n || 0).toLocaleString("es-AR");
 }
 
@@ -215,6 +216,8 @@ if (cifras === 3) {
 }
 
 function crearTabla() {
+// crea la cantidad de filas indicada y prepara la tabla para jugar.
+
     let cantidad = parseInt(document.getElementById("cantidad").value);
     if (!cantidad || cantidad < 1) {
         cantidad = 3;
@@ -237,6 +240,8 @@ function crearTabla() {
 }
 
 function actualizarEstadoApuestasFila(fila) {
+ // habilita o bloquea apuestas segun la cantidad de cifras elegida.
+
     let cifras = parseInt(fila.querySelector(".cifras").value);
     let inputCinco = fila.querySelector(".cinco");
     let inputDiez = fila.querySelector(".diez");
@@ -253,6 +258,8 @@ function actualizarEstadoApuestasFila(fila) {
 }
 
 function alternarCifras(boton) {
+ // cambia la cantidad de cifras de la fila y ajusta sus valores.
+
     let fila = boton.closest("tr");
     let inputCifras = fila.querySelector(".cifras");
     let inputNumero = fila.querySelector(".numero");
@@ -277,6 +284,7 @@ function alternarCifras(boton) {
 }
 
 function cargarJugadaClasica() {
+    // es la judada que jugue en verano y dio sus frutos 
     let tbody = document.querySelector("#tabla tbody");
 
     let clasica = [

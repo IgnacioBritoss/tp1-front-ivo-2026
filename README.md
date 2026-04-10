@@ -6,12 +6,11 @@ Esta mini app permite:
 - generar jugadas de quiniela,
 - guardar boletas en un historial,
 - ver estadísticas en tiempo real,
-- usar una sección opcional de **astro de la suerte**,
 - cambiar entre modo oscuro y claro.
 
 ## Herramientas usadas
 - Astro
-- HTML semántico
+- HTML
 - CSS
 - JavaScript
 
@@ -38,7 +37,4 @@ src/
     index.astro
 ```
 
-## Extras incluidos
-- Componentes reutilizables
-- Dark mode
-- Interactividad con JavaScript
+

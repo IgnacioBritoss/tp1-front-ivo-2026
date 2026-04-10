@@ -18,8 +18,14 @@ Además, en la sección de estadísticas, cada vez que tocás Ver estadísticas 
 
 Pagos por cada peso apostado
 
-En números de 3 cifras, a la cabeza paga $70 por cada $1 apostado.
+En números de 3 cifras, a la cabeza paga $600 por cada $1 apostado.
 
-En números de 2 cifras, a los 5 paga $7 por cada $1 apostado.
+En números de 3 cifras, a los 5 paga $100 por cada $1 apostado.
+
+En números de 3 cifras, a los 10 paga $50 por cada $1 apostado.
+
+En números de 2 cifras, a la cabeza paga $70 por cada $1 apostado.
+
+En números de 2 cifras, a los 5 paga $14 por cada $1 apostado.
 
 En números de 2 cifras, a los 10 paga $7 por cada $1 apostado.

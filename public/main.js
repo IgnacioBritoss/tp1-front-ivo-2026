@@ -627,15 +627,23 @@ function calcularPremioDeUnSorteo(jugadas, sorteo) {
             }
         }
 
-let pagaCabeza = 70;
-let pagaCinco = 14;
-let pagaDiez = 7;
-
-if (j.cifras === 1) {
-    pagaCabeza = 7;
-    pagaCinco = 0;
-    pagaDiez = 0;
-}
+        let pagaCabeza = 70;
+        let pagaCinco = 14;
+        let pagaDiez = 7;
+        
+        if (j.cifras === 1) {
+            pagaCabeza = 7;
+            pagaCinco = 0;
+            pagaDiez = 0;
+        } else if (j.cifras === 2) {
+            pagaCabeza = 70;
+            pagaCinco = 14;
+            pagaDiez = 7;
+        } else if (j.cifras === 3) {
+            pagaCabeza = 600; 
+            pagaCinco = 100;
+            pagaDiez = 50;
+        }
 
         // VERIFICAR SI GANO A LA CABEZA
         if (j.cabeza > 0 && numComp === sorteoComp[0]) {

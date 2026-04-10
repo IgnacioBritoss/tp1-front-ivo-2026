@@ -6,7 +6,7 @@ Primero tenés que elegir cuántos números querés cargar en tu jugada.
 
 En la Instantánea, cada boleta genera un sorteo de 10 números de 3 cifras, y el objetivo es acertar esos resultados según la modalidad en la que apuestes.
 
-Podés jugar números de 2 cifras o de 3 cifras, asignando un monto distinto a cada apuesta.
+Podés jugar números de 2 cifras o de 3 cifras o una cifra, asignando un monto distinto a cada apuesta.
 
 Tenés tres formas de jugar: a la cabeza, donde tu número debe salir en el primer puesto; a los 5, donde debe aparecer entre los primeros cinco números; y a los 10, donde puede salir en cualquiera de los diez resultados de la boleta.
 

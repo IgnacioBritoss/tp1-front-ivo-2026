@@ -190,6 +190,18 @@ const isLoggedIn = !!session;
           <div id="estadisticas"></div>
         </div>
       </section>
+      
+
+<section id="historialCard" class="card hide">
+  <div class="section">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h2 style="margin:0;">Historial de boletas</h2>
+      <button class="btn-ghost" type="button" onclick="cargarHistorialBoletas()">Actualizar</button>
+    </div>
+    <div id="historialContenido">Cargando...</div>
+  </div>
+</section>
+
     </main>
 
 <script is:inline define:vars={{ isLoggedIn }}>

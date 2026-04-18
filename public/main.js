@@ -25,6 +25,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     crearTabla();
     actualizarPreview();
 
+    if (window.USER_LOGUEADO) {
+        cargarHistorialBoletas();
+    }
+
+
     let cantidadSorteos = document.getElementById("cantidadSorteos");
     if (cantidadSorteos) {
         cantidadSorteos.addEventListener("input", function () {
@@ -636,7 +641,11 @@ async function jugar() {
         mostrarMensaje("Se jugo la boleta. Esta vez no hubo aciertos.", "info");
     }
      verHistorial();
+     if (window.USER_LOGUEADO) {
+        cargarHistorialBoletas();
+    }
 }
+
 
 function mostrarResultadoFinal(cantidadSorteos, costoTotal, premioTotal, todosLosAciertos) {
     let res = document.getElementById("resultado");
@@ -791,8 +800,12 @@ async function resetearHistorial() {
 
     document.getElementById("estadisticasCard").classList.add("hide");
     document.getElementById("estadisticas").innerHTML = "";
+    document.getElementById("historialCard").classList.add("hide");
+    document.getElementById("historialContenido").innerHTML = "";
     mostrarMensaje("Historial y balance borrados.", "success");
 }
+
+
 
 function hayHistorial3Cifras() {
     for (let i = 0; i < frecuencia3Cifras.length; i++) {
@@ -853,4 +866,87 @@ function girarNumeroSuerte() {
         label.textContent = origen;
         btn.disabled = false;
     }, 1600);
+}
+
+async function cargarHistorialBoletas() {
+    if (!window.USER_LOGUEADO) {
+        return;
+    }
+
+    const card = document.getElementById("historialCard");
+    const cont = document.getElementById("historialContenido");
+
+    card.classList.remove("hide");
+    cont.innerHTML = "Cargando...";
+
+    try {
+        const res = await fetch("/api/boletas");
+        if (!res.ok) {
+            cont.innerHTML = "<p>No se pudo cargar el historial.</p>";
+            return;
+        }
+
+        const boletas = await res.json();
+
+        if (!Array.isArray(boletas) || boletas.length === 0) {
+            cont.innerHTML = "<p>Todavía no jugaste ninguna boleta.</p>";
+            return;
+        }
+
+        cont.innerHTML = renderizarHistorialBoletas(boletas);
+    } catch (err) {
+        console.error("Error al cargar historial:", err);
+        cont.innerHTML = "<p>Error al cargar el historial.</p>";
+    }
+}
+
+function renderizarHistorialBoletas(boletas) {
+    let html = '<div class="historialGrid">';
+
+    for (let i = 0; i < boletas.length; i++) {
+        const b = boletas[i];
+        const costo = Number(b.costo_total);
+        const premio = Number(b.premio_total);
+        const balance = premio - costo;
+
+        const fecha = new Date(b.created_at).toLocaleString("es-AR", {
+            day: "2-digit", month: "2-digit", year: "numeric",
+            hour: "2-digit", minute: "2-digit"
+        });
+
+        const jugadas = Array.isArray(b.jugadas) ? b.jugadas : [];
+        const aciertos = Array.isArray(b.aciertos) ? b.aciertos : [];
+
+        let numerosHtml = "";
+        for (let j = 0; j < jugadas.length; j++) {
+            const jg = jugadas[j];
+            numerosHtml += `<span class="numeroChip">${completarConCeros(jg.numero, jg.cifras)}</span>`;
+        }
+
+        const claseBalance = balance > 0 ? "win" : (balance < 0 ? "loss" : "");
+        const textoBalance = (balance >= 0 ? "+" : "") + formatearDinero(balance);
+
+        const hayAciertos = aciertos.length > 0;
+
+        html += `
+            <div class="historialItem ${hayAciertos ? 'conAciertos' : ''}">
+                <div class="historialHeader">
+                    <span class="historialFecha">${fecha}</span>
+                    <span class="ganancia ${claseBalance}">${textoBalance}</span>
+                </div>
+                <div class="historialNumeros">
+                    ${numerosHtml}
+                </div>
+                <div class="historialDetalle">
+                    <span>${b.cantidad_sorteos} sorteo(s)</span>
+                    <span>Apostado: ${formatearDinero(costo)}</span>
+                    <span>Premio: ${formatearDinero(premio)}</span>
+                    <span>${aciertos.length} acierto(s)</span>
+                </div>
+            </div>
+        `;
+    }
+
+    html += '</div>';
+    return html;
 }

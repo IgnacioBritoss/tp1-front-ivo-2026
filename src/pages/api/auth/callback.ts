@@ -1,6 +1,17 @@
 import type { APIRoute } from 'astro';
 import { createSessionToken, getSessionCookieHeader } from '../../../lib/session';
 
+function getOrigin(request: Request): string {
+  const url = new URL(request.url);
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto');
+
+  const host = forwardedHost ?? url.host;
+  const proto = forwardedProto ?? url.protocol.replace(':', '');
+
+  return `${proto}://${host}`;
+}
+
 export const GET: APIRoute = async ({ request }) => {
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
@@ -15,7 +26,6 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response('Falta el parámetro code', { status: 400 });
   }
 
-  // Verificamos el state
   const cookieHeader = request.headers.get('cookie') ?? '';
   const stateMatch = cookieHeader.match(/oauth_state=([^;]+)/);
   const savedState = stateMatch ? stateMatch[1] : null;
@@ -29,10 +39,9 @@ export const GET: APIRoute = async ({ request }) => {
   // @ts-ignore
   const clientSecret = import.meta.env.GOOGLE_CLIENT_SECRET;
 
-  const origin = `${url.protocol}//${url.host}`;
+  const origin = getOrigin(request);
   const redirectUri = `${origin}/api/auth/callback`;
 
-  // Intercambiamos code por token
   const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -54,7 +63,6 @@ export const GET: APIRoute = async ({ request }) => {
   const tokenData = await tokenRes.json();
   const accessToken = tokenData.access_token;
 
-  // Obtenemos info del usuario
   const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
     headers: { 'Authorization': `Bearer ${accessToken}` },
   });
@@ -69,7 +77,6 @@ export const GET: APIRoute = async ({ request }) => {
     return new Response('Email no verificado', { status: 400 });
   }
 
-  // Creamos el token de sesión
   const sessionToken = await createSessionToken({
     email: userInfo.email,
     name: userInfo.name ?? null,
@@ -77,9 +84,7 @@ export const GET: APIRoute = async ({ request }) => {
   });
 
   const sessionCookie = getSessionCookieHeader(sessionToken);
-  const clearStateCookie = 'oauth_state=; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=0';
 
-  // Redirigimos al home con las cookies seteadas
   const headers = new Headers();
   headers.append('Location', '/');
   headers.append('Set-Cookie', sessionCookie);

@@ -1,14 +1,26 @@
 import type { APIRoute } from 'astro';
 
-export const GET: APIRoute = async ({ request, redirect }) => {
+function getOrigin(request: Request): string {
+  const url = new URL(request.url);
+
+  // En Vercel, request.url puede venir con "localhost".
+  // Usamos x-forwarded-host y x-forwarded-proto si están presentes.
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto');
+
+  const host = forwardedHost ?? url.host;
+  const proto = forwardedProto ?? url.protocol.replace(':', '');
+
+  return `${proto}://${host}`;
+}
+
+export const GET: APIRoute = async ({ request }) => {
   // @ts-ignore
   const clientId = import.meta.env.GOOGLE_CLIENT_ID;
 
-  const url = new URL(request.url);
-  const origin = `${url.protocol}//${url.host}`;
+  const origin = getOrigin(request);
   const redirectUri = `${origin}/api/auth/callback`;
 
-  // Generamos un state aleatorio para protección CSRF
   const state = crypto.randomUUID();
 
   const googleUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
@@ -19,7 +31,6 @@ export const GET: APIRoute = async ({ request, redirect }) => {
   googleUrl.searchParams.set('state', state);
   googleUrl.searchParams.set('prompt', 'select_account');
 
-  // Guardamos el state en una cookie temporal
   const stateCookie = `oauth_state=${state}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=600`;
 
   return new Response(null, {

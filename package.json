@@ -10,6 +10,10 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "astro": "^5.5.0"
+    "@astrojs/vercel": "^8.2.11",
+    "@auth/core": "^0.37.4",
+    "@neondatabase/serverless": "^1.1.0",
+    "astro": "^5.5.0",
+    "auth-astro": "^4.2.0"
   }
 }

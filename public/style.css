@@ -1052,3 +1052,75 @@ body.dark .messageBox.error{
 .modalActions button{
     min-width:120px;
 }
+
+/* Badge de usuario en header */
+.userBadge{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:6px 14px 6px 6px;
+    background:var(--bg-2);
+    border:1px solid var(--line);
+    border-radius:999px;
+    box-shadow:var(--shadow);
+    font-size:14px;
+    font-weight:bold;
+}
+
+.userBadge img{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    object-fit:cover;
+    background:var(--card-soft);
+    border:2px solid var(--line);
+}
+
+/* Grilla de avatars en modal */
+.modalContentWide{
+    max-width:560px;
+}
+
+.avatarsGrid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:10px;
+}
+
+.avatarOption{
+    border:3px solid transparent;
+    border-radius:14px;
+    padding:4px;
+    background:var(--bg-2);
+    cursor:pointer;
+    transition:.15s;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.avatarOption img{
+    width:100%;
+    height:auto;
+    aspect-ratio:1/1;
+    border-radius:10px;
+}
+
+.avatarOption:hover{
+    border-color:var(--line);
+}
+
+.avatarOption.selected{
+    border-color:var(--green);
+    background:var(--soft-green);
+}
+
+body.dark .avatarOption.selected{
+    background:#213224;
+}
+
+@media (max-width: 560px){
+    .avatarsGrid{
+        grid-template-columns:repeat(3, 1fr);
+    }
+}

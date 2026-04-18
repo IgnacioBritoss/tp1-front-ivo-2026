@@ -27,10 +27,15 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     if (window.USER_LOGUEADO) {
         cargarHistorialBoletas();
-        actualizarBotonesFavorita();  
-
+        actualizarBotonesFavorita();
+        cargarPerfil();  // ← NUEVO: sincronizar avatar y nombre al cargar
     }
 
+    // NUEVO: botón "Mi perfil"
+    const btnEditarPerfil = document.getElementById("btnEditarPerfil");
+    if (btnEditarPerfil) {
+        btnEditarPerfil.addEventListener("click", abrirModalPerfil);
+    }
 
     let cantidadSorteos = document.getElementById("cantidadSorteos");
     if (cantidadSorteos) {
@@ -1158,4 +1163,123 @@ async function actualizarBotonesFavorita() {
         btnCargar.textContent = "Cargar favorita";
         btnBorrar.textContent = "Borrar favorita";
     }
+}
+
+// ======================================
+// Perfil del usuario
+// ======================================
+
+async function cargarPerfil() {
+    if (!window.USER_LOGUEADO) return;
+
+    try {
+        const res = await fetch("/api/me");
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // Aplicar nombre personalizado al header
+        const userNombreEl = document.getElementById("userNombre");
+        if (userNombreEl) {
+            userNombreEl.textContent = data.displayName ?? data.name ?? data.email;
+        }
+
+        // Aplicar avatar
+        const userAvatarEl = document.getElementById("userAvatar");
+        if (userAvatarEl) {
+            userAvatarEl.src = data.avatarUrl ?? data.googleImage ?? "";
+        }
+
+        return data;
+    } catch (err) {
+        console.error("Error cargando perfil:", err);
+    }
+}
+
+async function abrirModalPerfil() {
+    if (!window.USER_LOGUEADO) return;
+
+    const modal = document.getElementById("perfilModal");
+    const inputNombre = document.getElementById("perfilNombre");
+    const grid = document.getElementById("avatarsGrid");
+    const btnGuardar = document.getElementById("btnPerfilGuardar");
+    const btnCancelar = document.getElementById("btnPerfilCancelar");
+
+    // Cargar datos actuales
+    const data = await cargarPerfil();
+    if (!data) return;
+
+    inputNombre.value = data.displayName ?? data.name ?? "";
+
+    // Render de avatars
+    let avatarElegido = data.avatarUrl ?? null;
+    grid.innerHTML = "";
+
+    for (let i = 0; i < data.avatarsDisponibles.length; i++) {
+        const url = data.avatarsDisponibles[i];
+        const div = document.createElement("div");
+        div.className = "avatarOption" + (url === avatarElegido ? " selected" : "");
+        div.innerHTML = `<img src="${url}" alt="Avatar ${i + 1}" />`;
+        div.addEventListener("click", function () {
+            avatarElegido = url;
+            grid.querySelectorAll(".avatarOption").forEach(el => el.classList.remove("selected"));
+            div.classList.add("selected");
+        });
+        grid.appendChild(div);
+    }
+
+    modal.classList.remove("hide");
+    setTimeout(() => inputNombre.focus(), 50);
+
+    // Limpiar handlers previos
+    const nuevoBtnOk = btnGuardar.cloneNode(true);
+    btnGuardar.parentNode.replaceChild(nuevoBtnOk, btnGuardar);
+    const nuevoBtnCancel = btnCancelar.cloneNode(true);
+    btnCancelar.parentNode.replaceChild(nuevoBtnCancel, btnCancelar);
+
+    function cerrarModal() {
+        modal.classList.add("hide");
+        document.removeEventListener("keydown", onKeyDown);
+        modal.removeEventListener("click", onOverlayClick);
+    }
+
+    function onKeyDown(e) {
+        if (e.key === "Escape") cerrarModal();
+    }
+
+    function onOverlayClick(e) {
+        if (e.target === modal) cerrarModal();
+    }
+
+    async function guardar() {
+        const nombre = inputNombre.value.trim();
+        if (nombre.length === 0) {
+            inputNombre.focus();
+            return;
+        }
+
+        try {
+            const res = await fetch("/api/me", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ displayName: nombre, avatarUrl: avatarElegido })
+            });
+
+            if (res.ok) {
+                cerrarModal();
+                mostrarMensaje("Perfil actualizado.", "success");
+                await cargarPerfil();
+            } else {
+                const err = await res.json().catch(() => ({}));
+                mostrarMensaje("No se pudo guardar: " + (err.error ?? "error desconocido"), "error");
+            }
+        } catch (err) {
+            console.error("Error al guardar perfil:", err);
+            mostrarMensaje("Error al guardar el perfil.", "error");
+        }
+    }
+
+    nuevoBtnOk.addEventListener("click", guardar);
+    nuevoBtnCancel.addEventListener("click", cerrarModal);
+    document.addEventListener("keydown", onKeyDown);
+    modal.addEventListener("click", onOverlayClick);
 }

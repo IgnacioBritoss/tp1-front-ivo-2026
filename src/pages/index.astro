@@ -15,26 +15,26 @@ const isLoggedIn = !!session;
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
-    <div class="themeToggleWrap" style="display:flex; gap:10px; align-items:center;">
-      {session ? (
-        <>
-          <span style="font-size:14px;">
-            Hola, {session.user?.name ?? session.user?.email}
-          </span>
-          <button class="btn-ghost" type="button" id="btnSignOut">
-            Cerrar sesión
-          </button>
-        </>
-      ) : (
-        <button class="btn-primary" type="button" id="btnSignIn">
-          Ingresar con Google
-        </button>
-      )}
+    <div class="themeToggleWrap" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+  {session ? (
+    <>
+      <div class="userBadge" id="userBadge">
+        <img id="userAvatar" src={session.user?.image ?? ''} alt="Avatar" />
+        <span id="userNombre">{session.user?.name ?? session.user?.email}</span>
+      </div>
+      <button class="btn-ghost" type="button" id="btnEditarPerfil">Mi perfil</button>
+      <button class="btn-ghost" type="button" id="btnSignOut">Cerrar sesión</button>
+    </>
+  ) : (
+    <button class="btn-primary" type="button" id="btnSignIn">
+      Ingresar con Google
+    </button>
+  )}
 
-      <button id="themeToggle" class="themeToggle" type="button" aria-label="Cambiar tema">
-        Claro
-      </button>
-    </div>
+  <button id="themeToggle" class="themeToggle" type="button" aria-label="Cambiar tema">
+    Claro
+  </button>
+</div>
 
     <main class="container">
       <section class="card">
@@ -227,6 +227,29 @@ const isLoggedIn = !!session;
   </div>
 </div>
 
+
+<!-- Modal para editar perfil -->
+<div id="perfilModal" class="modalOverlay hide">
+  <div class="modalContent modalContentWide">
+    <h3>Mi perfil</h3>
+    <p class="modalDesc">Personalizá tu nombre y elegí un avatar.</p>
+
+    <div class="modalField">
+      <label for="perfilNombre">Nombre a mostrar</label>
+      <input type="text" id="perfilNombre" maxlength="50" placeholder="Tu nombre" />
+    </div>
+
+    <div class="modalField">
+      <label>Elegí un avatar</label>
+      <div class="avatarsGrid" id="avatarsGrid"></div>
+    </div>
+
+    <div class="modalActions">
+      <button class="btn-ghost" type="button" id="btnPerfilCancelar">Cancelar</button>
+      <button class="btn-soft" type="button" id="btnPerfilGuardar">Guardar</button>
+    </div>
+  </div>
+</div>
 
     </main>
 

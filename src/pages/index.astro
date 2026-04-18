@@ -3,6 +3,7 @@ import { getSession } from 'auth-astro/server';
 
 const pageTitle = "Quiniela Britos";
 const session = await getSession(Astro.request);
+const isLoggedIn = !!session;
 ---
 
 <!doctype html>
@@ -191,6 +192,10 @@ const session = await getSession(Astro.request);
         </div>
       </section>
     </main>
+
+<script is:inline define:vars={{ isLoggedIn }}>
+  window.USER_LOGUEADO = isLoggedIn;
+</script>
 
 <script>
   import { signIn, signOut } from 'auth-astro/client';

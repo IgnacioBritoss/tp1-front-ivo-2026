@@ -4,8 +4,10 @@ import { defineConfig } from 'auth-astro';
 export default defineConfig({
   providers: [
     Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      // @ts-ignore
+      clientId: import.meta.env.GOOGLE_CLIENT_ID,
+      // @ts-ignore
+      clientSecret: import.meta.env.GOOGLE_CLIENT_SECRET,
     }),
   ],
 });

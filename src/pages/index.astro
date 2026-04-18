@@ -1,8 +1,8 @@
 ---
-import { getSession } from 'auth-astro/server';
+import { getSessionFromRequest } from '../lib/session';
 
 const pageTitle = "Quiniela Britos";
-const session = await getSession(Astro.request);
+const session = await getSessionFromRequest(Astro.request);
 const isLoggedIn = !!session;
 ---
 
@@ -16,25 +16,22 @@ const isLoggedIn = !!session;
   </head>
   <body>
     <div class="themeToggleWrap" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-  {session ? (
-    <>
-      <div class="userBadge" id="userBadge">
-        <img id="userAvatar" src={session.user?.image ?? ''} alt="Avatar" />
-        <span id="userNombre">{session.user?.name ?? session.user?.email}</span>
-      </div>
-      <button class="btn-ghost" type="button" id="btnEditarPerfil">Mi perfil</button>
-      <button class="btn-ghost" type="button" id="btnSignOut">Cerrar sesión</button>
-    </>
-  ) : (
-    <button class="btn-primary" type="button" id="btnSignIn">
-      Ingresar con Google
-    </button>
-  )}
+      {session ? (
+        <>
+          <div class="userBadge" id="userBadge">
+            <img id="userAvatar" src={session.picture ?? ''} alt="Avatar" />
+            <span id="userNombre">{session.name ?? session.email}</span>
+          </div>
+          <button class="btn-ghost" type="button" id="btnEditarPerfil">Mi perfil</button>
+<a class="btn-ghost" href="/api/auth/logout">Cerrar sesión</a>        </>
+      ) : (
+        <a class="btn-primary" href="/api/auth/login">Ingresar con Google</a>
+      )}
 
-  <button id="themeToggle" class="themeToggle" type="button" aria-label="Cambiar tema">
-    Claro
-  </button>
-</div>
+      <button id="themeToggle" class="themeToggle" type="button" aria-label="Cambiar tema">
+        Claro
+      </button>
+    </div>
 
     <main class="container">
       <section class="card">
@@ -68,21 +65,21 @@ const isLoggedIn = !!session;
                   <input type="number" id="cantidadSorteos" min="1" max="50" value="1" />
                 </div>
 
-               <div class="field actionsField" style="grid-column: span 12;">
-  <label>Acciones</label>
-  <div class="accionesGrid">
-    <button class="btn-primary" type="button" onclick="crearTabla()">Crear / actualizar</button>
-    <button class="btn-ghost" type="button" onclick="limpiarJugadas()">Limpiar boleta</button>
-    <button class="btn-classic" type="button" onclick="cargarJugadaClasica()">Cargar jugada clásica</button>
-    {session && (
-      <>
-        <button class="btn-soft" type="button" onclick="guardarJugadaFavorita()">Guardar como favorita</button>
-        <button class="btn-classic" type="button" id="btnCargarFavorita" onclick="cargarJugadaFavorita()">Cargar favorita</button>
-        <button class="btn-ghost" type="button" id="btnBorrarFavorita" onclick="borrarJugadaFavorita()">Borrar favorita</button>
-      </>
-    )}
-  </div>
-</div>
+                <div class="field actionsField" style="grid-column: span 12;">
+                  <label>Acciones</label>
+                  <div class="accionesGrid">
+                    <button class="btn-primary" type="button" onclick="crearTabla()">Crear / actualizar</button>
+                    <button class="btn-ghost" type="button" onclick="limpiarJugadas()">Limpiar boleta</button>
+                    <button class="btn-classic" type="button" onclick="cargarJugadaClasica()">Cargar jugada clásica</button>
+                    {session && (
+                      <>
+                        <button class="btn-soft" type="button" onclick="guardarJugadaFavorita()">Guardar como favorita</button>
+                        <button class="btn-classic" type="button" id="btnCargarFavorita" onclick="cargarJugadaFavorita()">Cargar favorita</button>
+                        <button class="btn-ghost" type="button" id="btnBorrarFavorita" onclick="borrarJugadaFavorita()">Borrar favorita</button>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -211,64 +208,48 @@ const isLoggedIn = !!session;
         </div>
       </section>
 
-    <!-- Modal para guardar jugada favorita -->
-<div id="favoritaModal" class="modalOverlay hide">
-  <div class="modalContent">
-    <h3 id="favoritaModalTitulo">Guardar jugada favorita</h3>
-    <p id="favoritaModalDesc" class="modalDesc">Poné un nombre para identificar esta jugada.</p>
-    <div class="modalField">
-      <label for="favoritaNombre">Nombre</label>
-      <input type="text" id="favoritaNombre" maxlength="50" placeholder="Mi jugada de la suerte" />
-    </div>
-    <div class="modalActions">
-      <button class="btn-ghost" type="button" id="btnModalCancelar">Cancelar</button>
-      <button class="btn-soft" type="button" id="btnModalConfirmar">Guardar</button>
-    </div>
-  </div>
-</div>
+      <!-- Modal para guardar jugada favorita -->
+      <div id="favoritaModal" class="modalOverlay hide">
+        <div class="modalContent">
+          <h3 id="favoritaModalTitulo">Guardar jugada favorita</h3>
+          <p id="favoritaModalDesc" class="modalDesc">Poné un nombre para identificar esta jugada.</p>
+          <div class="modalField">
+            <label for="favoritaNombre">Nombre</label>
+            <input type="text" id="favoritaNombre" maxlength="50" placeholder="Mi jugada de la suerte" />
+          </div>
+          <div class="modalActions">
+            <button class="btn-ghost" type="button" id="btnModalCancelar">Cancelar</button>
+            <button class="btn-soft" type="button" id="btnModalConfirmar">Guardar</button>
+          </div>
+        </div>
+      </div>
 
+      <!-- Modal para editar perfil -->
+      <div id="perfilModal" class="modalOverlay hide">
+        <div class="modalContent modalContentWide">
+          <h3>Mi perfil</h3>
+          <p class="modalDesc">Personalizá tu nombre y elegí un avatar.</p>
 
-<!-- Modal para editar perfil -->
-<div id="perfilModal" class="modalOverlay hide">
-  <div class="modalContent modalContentWide">
-    <h3>Mi perfil</h3>
-    <p class="modalDesc">Personalizá tu nombre y elegí un avatar.</p>
+          <div class="modalField">
+            <label for="perfilNombre">Nombre a mostrar</label>
+            <input type="text" id="perfilNombre" maxlength="50" placeholder="Tu nombre" />
+          </div>
 
-    <div class="modalField">
-      <label for="perfilNombre">Nombre a mostrar</label>
-      <input type="text" id="perfilNombre" maxlength="50" placeholder="Tu nombre" />
-    </div>
+          <div class="modalField">
+            <label>Elegí un avatar</label>
+            <div class="avatarsGrid" id="avatarsGrid"></div>
+          </div>
 
-    <div class="modalField">
-      <label>Elegí un avatar</label>
-      <div class="avatarsGrid" id="avatarsGrid"></div>
-    </div>
-
-    <div class="modalActions">
-      <button class="btn-ghost" type="button" id="btnPerfilCancelar">Cancelar</button>
-      <button class="btn-soft" type="button" id="btnPerfilGuardar">Guardar</button>
-    </div>
-  </div>
-</div>
-
+          <div class="modalActions">
+            <button class="btn-ghost" type="button" id="btnPerfilCancelar">Cancelar</button>
+            <button class="btn-soft" type="button" id="btnPerfilGuardar">Guardar</button>
+          </div>
+        </div>
+      </div>
     </main>
 
     <script is:inline define:vars={{ isLoggedIn }}>
       window.USER_LOGUEADO = isLoggedIn;
-    </script>
-
-    <script>
-      import { signIn, signOut } from 'auth-astro/client';
-
-      const btnIn = document.getElementById('btnSignIn');
-      if (btnIn) {
-        btnIn.addEventListener('click', () => signIn('google'));
-      }
-
-      const btnOut = document.getElementById('btnSignOut');
-      if (btnOut) {
-        btnOut.addEventListener('click', () => signOut());
-      }
     </script>
 
     <script is:inline src="/main.js"></script>

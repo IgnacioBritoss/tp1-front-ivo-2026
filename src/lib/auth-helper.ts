@@ -1,19 +1,15 @@
-import { getSession } from 'auth-astro/server';
 import { sql } from './db';
+import { getSessionFromRequest } from './session';
 
-// Obtiene la sesión actual y asegura que el usuario exista en la tabla users.
-// Devuelve el user_id si hay sesión, o null si no.
 export async function getUserIdOrNull(request: Request): Promise<string | null> {
-  const session = await getSession(request);
-  if (!session?.user?.email) return null;
+  const session = await getSessionFromRequest(request);
+  if (!session?.email) return null;
 
-  const email = session.user.email;
-  const name = session.user.name ?? null;
-  const image = session.user.image ?? null;
+  const email = session.email;
+  const name = session.name ?? null;
+  const image = session.picture ?? null;
 
-  // Upsert: si no existe el usuario, lo crea. Si existe, no hace nada.
-  // Usamos el email como id porque Auth.js con JWT no nos da un id estable.
-  const result = await sql`
+  await sql`
     INSERT INTO users (id, email, name, image)
     VALUES (${email}, ${email}, ${name}, ${image})
     ON CONFLICT (id) DO UPDATE
@@ -21,5 +17,5 @@ export async function getUserIdOrNull(request: Request): Promise<string | null> 
     RETURNING id
   `;
 
-  return result[0].id as string;
+  return email;
 }

@@ -5,6 +5,9 @@ import auth from 'auth-astro';
 
 export default defineConfig({
   output: 'server',
-  adapter: vercel(),
+  adapter: vercel({
+    maxDuration: 10,
+    webAnalytics: { enabled: false },
+  }),
   integrations: [auth()],
 });

@@ -137,9 +137,9 @@ async function cargarDatos() {
         const data = await res.json();
 
         resumenGeneral = {
-            boletasJugadas: data.boletas_jugadas ?? 0,
-            dineroGastado: data.dinero_gastado ?? 0,
-            dineroGanado: data.dinero_ganado ?? 0
+            boletasJugadas: Number(data.boletas_jugadas ?? 0),
+            dineroGastado: Number(data.dinero_gastado ?? 0),
+            dineroGanado: Number(data.dinero_ganado ?? 0)
         };
 
         if (Array.isArray(data.frecuencia_2_cifras) && data.frecuencia_2_cifras.length === 100) {
@@ -187,9 +187,9 @@ function crearFilaHTML(index, data) {
                 <input type="hidden" class="cifras" value="${cifras}">
                 <button type="button" class="smallInput cifrasBtn" onclick="alternarCifras(this)">${cifras}</button>
             </td>
-            <td><input type="number" class="cabeza smallInput" min="0" value="${cabeza}" oninput="actualizarPreview()"></td>
-            <td><input type="number" class="cinco smallInput" min="0" value="${cinco}" oninput="actualizarPreview()"></td>
-            <td><input type="number" class="diez smallInput" min="0" value="${diez}" oninput="actualizarPreview()"></td>
+<td><input type="number" class="cabeza smallInput" min="0" max="50000" value="${cabeza}" oninput="actualizarPreview()"></td>
+<td><input type="number" class="cinco smallInput" min="0" max="50000" value="${cinco}" oninput="actualizarPreview()"></td>
+<td><input type="number" class="diez smallInput" min="0" max="50000" value="${diez}" oninput="actualizarPreview()"></td>
         </tr>
     `;
 }
@@ -366,6 +366,8 @@ function obtenerJugadasDesdeTabla() {
     let filas = document.querySelectorAll("#tabla tbody tr");
     let jugadas = [];
 
+    const MONTO_MAX = 50000;
+
     for (let i = 0; i < filas.length; i++) {
         let fila = filas[i];
         let numeroRaw = fila.querySelector(".numero").value;
@@ -373,6 +375,16 @@ function obtenerJugadasDesdeTabla() {
         let cabeza = parseInt(fila.querySelector(".cabeza").value) || 0;
         let cinco = parseInt(fila.querySelector(".cinco").value) || 0;
         let diez = parseInt(fila.querySelector(".diez").value) || 0;
+
+        // Capamos montos al máximo permitido
+        if (cabeza > MONTO_MAX) cabeza = MONTO_MAX;
+        if (cinco > MONTO_MAX) cinco = MONTO_MAX;
+        if (diez > MONTO_MAX) diez = MONTO_MAX;
+
+        // También sincronizamos el valor visible del input
+        fila.querySelector(".cabeza").value = cabeza;
+        fila.querySelector(".cinco").value = cinco;
+        fila.querySelector(".diez").value = diez;
 
         if (numeroRaw !== "") {
             let numero = parseInt(numeroRaw);
@@ -623,6 +635,7 @@ async function jugar() {
     } else {
         mostrarMensaje("Se jugo la boleta. Esta vez no hubo aciertos.", "info");
     }
+     verHistorial();
 }
 
 function mostrarResultadoFinal(cantidadSorteos, costoTotal, premioTotal, todosLosAciertos) {

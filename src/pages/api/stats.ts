@@ -39,7 +39,26 @@ export const PUT: APIRoute = async ({ request }) => {
   }
 
   const body = await request.json();
-  const { boletas_jugadas, dinero_gastado, dinero_ganado, frecuencia_2_cifras, frecuencia_3_cifras } = body;
+  let { boletas_jugadas, dinero_gastado, dinero_ganado, frecuencia_2_cifras, frecuencia_3_cifras } = body;
+
+  // Límites de seguridad
+  const MAX_BIGINT = 9_000_000_000_000;  // 9 billones, muy por debajo del límite de BIGINT
+
+  if (typeof boletas_jugadas !== 'number' || boletas_jugadas < 0 || boletas_jugadas > 1_000_000) {
+    return new Response(JSON.stringify({ error: 'Boletas jugadas inválido' }), { status: 400 });
+  }
+  if (typeof dinero_gastado !== 'number' || dinero_gastado < 0 || dinero_gastado > MAX_BIGINT) {
+    return new Response(JSON.stringify({ error: 'Dinero gastado inválido' }), { status: 400 });
+  }
+  if (typeof dinero_ganado !== 'number' || dinero_ganado < 0 || dinero_ganado > MAX_BIGINT) {
+    return new Response(JSON.stringify({ error: 'Dinero ganado inválido' }), { status: 400 });
+  }
+  if (!Array.isArray(frecuencia_2_cifras) || frecuencia_2_cifras.length !== 100) {
+    return new Response(JSON.stringify({ error: 'Frecuencia 2 cifras inválida' }), { status: 400 });
+  }
+  if (!Array.isArray(frecuencia_3_cifras) || frecuencia_3_cifras.length !== 1000) {
+    return new Response(JSON.stringify({ error: 'Frecuencia 3 cifras inválida' }), { status: 400 });
+  }
 
   await sql`
     INSERT INTO user_stats (user_id, boletas_jugadas, dinero_gastado, dinero_ganado, frecuencia_2_cifras, frecuencia_3_cifras, updated_at)

@@ -29,9 +29,23 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const body = await request.json();
-  const { jugadas, sorteos, cantidadSorteos, costoTotal, premioTotal, aciertos } = body;
+  let { jugadas, sorteos, cantidadSorteos, costoTotal, premioTotal, aciertos } = body;
 
-  // Insertamos la boleta
+  // Límites de seguridad
+  const COSTO_MAX = 50_000_000;  // 50 millones (límite defensivo)
+  const PREMIO_MAX = 50_000_000_000;  // 50 mil millones
+  const SORTEOS_MAX = 50;
+
+  if (typeof cantidadSorteos !== 'number' || cantidadSorteos < 1 || cantidadSorteos > SORTEOS_MAX) {
+    return new Response(JSON.stringify({ error: 'Cantidad de sorteos inválida' }), { status: 400 });
+  }
+  if (typeof costoTotal !== 'number' || costoTotal < 0 || costoTotal > COSTO_MAX) {
+    return new Response(JSON.stringify({ error: 'Costo total inválido' }), { status: 400 });
+  }
+  if (typeof premioTotal !== 'number' || premioTotal < 0 || premioTotal > PREMIO_MAX) {
+    return new Response(JSON.stringify({ error: 'Premio total inválido' }), { status: 400 });
+  }
+
   await sql`
     INSERT INTO boletas (user_id, jugadas, sorteos, cantidad_sorteos, costo_total, premio_total, aciertos)
     VALUES (

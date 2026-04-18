@@ -15,26 +15,26 @@ const isLoggedIn = !!session;
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
-<div class="themeToggleWrap" style="display:flex; gap:10px; align-items:center;">
-  {session ? (
-    <>
-      <span style="font-size:14px;">
-        Hola, {session.user?.name ?? session.user?.email}
-      </span>
-      <button class="btn-ghost" type="button" id="btnSignOut">
-        Cerrar sesión
-      </button>
-    </>
-  ) : (
-    <button class="btn-primary" type="button" id="btnSignIn">
-      Ingresar con Google
-    </button>
-  )}
+    <div class="themeToggleWrap" style="display:flex; gap:10px; align-items:center;">
+      {session ? (
+        <>
+          <span style="font-size:14px;">
+            Hola, {session.user?.name ?? session.user?.email}
+          </span>
+          <button class="btn-ghost" type="button" id="btnSignOut">
+            Cerrar sesión
+          </button>
+        </>
+      ) : (
+        <button class="btn-primary" type="button" id="btnSignIn">
+          Ingresar con Google
+        </button>
+      )}
 
-  <button id="themeToggle" class="themeToggle" type="button" aria-label="Cambiar tema">
-    Claro
-  </button>
-</div>
+      <button id="themeToggle" class="themeToggle" type="button" aria-label="Cambiar tema">
+        Claro
+      </button>
+    </div>
 
     <main class="container">
       <section class="card">
@@ -53,28 +53,36 @@ const isLoggedIn = !!session;
       <section class="grid grid-2">
         <div class="card">
           <div class="section">
+
             <div class="panel" style="margin-bottom:14px;">
               <h3>Preparar boleta</h3>
 
               <div class="controlsWrap">
-                <div class="field" style="grid-column: span 3;">
+                <div class="field" style="grid-column: span 6;">
                   <label for="cantidad">Cantidad de números</label>
                   <input type="number" id="cantidad" min="1" max="25" value="3" />
                 </div>
 
-                <div class="field" style="grid-column: span 3;">
+                <div class="field" style="grid-column: span 6;">
                   <label for="cantidadSorteos">Cantidad de sorteos</label>
                   <input type="number" id="cantidadSorteos" min="1" max="50" value="1" />
                 </div>
 
-                <div class="field actionsField" style="grid-column: span 6;">
-                  <label>Acciones</label>
-                  <div class="actionRow equalButtons">
-                    <button class="btn-primary" type="button" onclick="crearTabla()">Crear / actualizar</button>
-                    <button class="btn-ghost" type="button" onclick="limpiarJugadas()">Limpiar boleta</button>
-                    <button class="btn-classic" type="button" onclick="cargarJugadaClasica()">Cargar jugada clásica</button>
-                  </div>
-                </div>
+               <div class="field actionsField" style="grid-column: span 12;">
+  <label>Acciones</label>
+  <div class="accionesGrid">
+    <button class="btn-primary" type="button" onclick="crearTabla()">Crear / actualizar</button>
+    <button class="btn-ghost" type="button" onclick="limpiarJugadas()">Limpiar boleta</button>
+    <button class="btn-classic" type="button" onclick="cargarJugadaClasica()">Cargar jugada clásica</button>
+    {session && (
+      <>
+        <button class="btn-soft" type="button" onclick="guardarJugadaFavorita()">Guardar como favorita</button>
+        <button class="btn-classic" type="button" id="btnCargarFavorita" onclick="cargarJugadaFavorita()">Cargar favorita</button>
+        <button class="btn-ghost" type="button" id="btnBorrarFavorita" onclick="borrarJugadaFavorita()">Borrar favorita</button>
+      </>
+    )}
+  </div>
+</div>
               </div>
             </div>
 
@@ -84,7 +92,8 @@ const isLoggedIn = !!session;
               <div class="controlsWrap montosGrid" style="margin-top:12px;">
                 <div class="field montoField">
                   <label for="montoMasivo">Monto</label>
-                  <input type="number" id="montoMasivo" min="0" max="50000" step="1" value="100" />                </div>
+                  <input type="number" id="montoMasivo" min="0" max="50000" step="1" value="100" />
+                </div>
 
                 <div class="field aplicarField">
                   <label>Aplicar a</label>
@@ -131,6 +140,7 @@ const isLoggedIn = !!session;
               <button class="btn-primary" type="button" onclick="verHistorial()">Ver estadísticas</button>
               <button class="btn-danger" type="button" onclick="resetearHistorial()">Reset estadísticas</button>
             </div>
+
           </div>
         </div>
 
@@ -190,38 +200,54 @@ const isLoggedIn = !!session;
           <div id="estadisticas"></div>
         </div>
       </section>
-      
 
-<section id="historialCard" class="card hide">
-  <div class="section">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-      <h2 style="margin:0;">Historial de boletas</h2>
-      <button class="btn-ghost" type="button" onclick="cargarHistorialBoletas()">Actualizar</button>
+      <section id="historialCard" class="card hide">
+        <div class="section">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h2 style="margin:0;">Historial de boletas</h2>
+            <button class="btn-ghost" type="button" onclick="cargarHistorialBoletas()">Actualizar</button>
+          </div>
+          <div id="historialContenido">Cargando...</div>
+        </div>
+      </section>
+
+    <!-- Modal para guardar jugada favorita -->
+<div id="favoritaModal" class="modalOverlay hide">
+  <div class="modalContent">
+    <h3 id="favoritaModalTitulo">Guardar jugada favorita</h3>
+    <p id="favoritaModalDesc" class="modalDesc">Poné un nombre para identificar esta jugada.</p>
+    <div class="modalField">
+      <label for="favoritaNombre">Nombre</label>
+      <input type="text" id="favoritaNombre" maxlength="50" placeholder="Mi jugada de la suerte" />
     </div>
-    <div id="historialContenido">Cargando...</div>
+    <div class="modalActions">
+      <button class="btn-ghost" type="button" id="btnModalCancelar">Cancelar</button>
+      <button class="btn-soft" type="button" id="btnModalConfirmar">Guardar</button>
+    </div>
   </div>
-</section>
+</div>
+
 
     </main>
 
-<script is:inline define:vars={{ isLoggedIn }}>
-  window.USER_LOGUEADO = isLoggedIn;
-</script>
+    <script is:inline define:vars={{ isLoggedIn }}>
+      window.USER_LOGUEADO = isLoggedIn;
+    </script>
 
-<script>
-  import { signIn, signOut } from 'auth-astro/client';
+    <script>
+      import { signIn, signOut } from 'auth-astro/client';
 
-  const btnIn = document.getElementById('btnSignIn');
-  if (btnIn) {
-    btnIn.addEventListener('click', () => signIn('google'));
-  }
+      const btnIn = document.getElementById('btnSignIn');
+      if (btnIn) {
+        btnIn.addEventListener('click', () => signIn('google'));
+      }
 
-  const btnOut = document.getElementById('btnSignOut');
-  if (btnOut) {
-    btnOut.addEventListener('click', () => signOut());
-  }
-</script>
+      const btnOut = document.getElementById('btnSignOut');
+      if (btnOut) {
+        btnOut.addEventListener('click', () => signOut());
+      }
+    </script>
 
-<script is:inline src="/main.js"></script>
+    <script is:inline src="/main.js"></script>
   </body>
 </html>

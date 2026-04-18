@@ -157,7 +157,7 @@ body{
     background:var(--card-soft);
     border:1px solid var(--line);
     border-radius:18px;
-    padding:14px;
+    padding:14px 14px 18px;
 }
 
 .panel h3{
@@ -845,21 +845,44 @@ body.dark .messageBox.error{
     box-shadow:none;
 }
 
-.cifrasBtn:hover{
-    transform:none;
-}
-
+.cifrasBtn:hover{ transform:none; }
 .cifrasBtn:focus{
     border-color:var(--blue);
     box-shadow:0 0 0 4px rgba(47,78,161,.12);
 }
+.cifrasBtn:active{ transform:none; }
 
-.cifrasBtn:active{
-    transform:none;
+
+/* ==========================================
+   Grid de acciones (6 botones 3x2)
+   ========================================== */
+.accionesGrid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:10px;
+}
+
+.accionesGrid button{
+    min-height:48px;
+    width:100%;
+}
+
+@media (max-width: 980px){
+    .accionesGrid{
+        grid-template-columns:repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 560px){
+    .accionesGrid{
+        grid-template-columns:1fr;
+    }
 }
 
 
-/* Historial de boletas */
+/* ==========================================
+   Historial de boletas
+   ========================================== */
 .historialGrid{
     display:grid;
     grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
@@ -886,13 +909,8 @@ body.dark .messageBox.error{
     background:var(--yellow);
 }
 
-.historialItem.conAciertos{
-    border-color:var(--green);
-}
-
-.historialItem.conAciertos::before{
-    background:var(--green);
-}
+.historialItem.conAciertos{ border-color:var(--green); }
+.historialItem.conAciertos::before{ background:var(--green); }
 
 .historialHeader{
     display:flex;
@@ -907,9 +925,7 @@ body.dark .messageBox.error{
     font-weight:bold;
 }
 
-.historialHeader .ganancia{
-    font-size:18px;
-}
+.historialHeader .ganancia{ font-size:18px; }
 
 .historialNumeros{
     display:flex;
@@ -946,4 +962,93 @@ body.dark .messageBox.error{
     .historialGrid{
         grid-template-columns:1fr;
     }
+}
+
+/* ==========================================
+   Modal
+   ========================================== */
+.modalOverlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+    padding:20px;
+    animation:fadeIn .15s ease;
+}
+
+@keyframes fadeIn{
+    from{ opacity:0; }
+    to{ opacity:1; }
+}
+
+.modalContent{
+    background:var(--card);
+    color:var(--text);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    border:1px solid var(--line);
+    padding:24px;
+    max-width:440px;
+    width:100%;
+    animation:slideUp .18s ease;
+}
+
+@keyframes slideUp{
+    from{ transform:translateY(14px); opacity:0; }
+    to{ transform:translateY(0); opacity:1; }
+}
+
+.modalContent h3{
+    margin:0 0 8px;
+    font-size:20px;
+}
+
+.modalDesc{
+    color:var(--muted);
+    font-size:14px;
+    margin:0 0 16px;
+}
+
+.modalField{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-bottom:18px;
+}
+
+.modalField label{
+    font-size:13px;
+    color:var(--muted);
+    font-weight:bold;
+}
+
+.modalField input[type="text"]{
+    width:100%;
+    padding:12px;
+    border-radius:13px;
+    border:1px solid var(--line);
+    background:var(--bg-2);
+    color:var(--text);
+    font-size:15px;
+    outline:none;
+    transition:.18s;
+}
+
+.modalField input[type="text"]:focus{
+    border-color:var(--blue);
+    box-shadow:0 0 0 4px rgba(47,78,161,.12);
+}
+
+.modalActions{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.modalActions button{
+    min-width:120px;
 }

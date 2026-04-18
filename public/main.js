@@ -27,6 +27,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     if (window.USER_LOGUEADO) {
         cargarHistorialBoletas();
+        actualizarBotonesFavorita();  
+
     }
 
 
@@ -949,4 +951,211 @@ function renderizarHistorialBoletas(boletas) {
 
     html += '</div>';
     return html;
+}
+
+function guardarJugadaFavorita() {
+    if (!window.USER_LOGUEADO) return;
+
+    const jugadas = obtenerJugadasDesdeTabla();
+    if (jugadas.length === 0) {
+        mostrarMensaje("Carga al menos un numero con algun importe para guardar.", "error");
+        return;
+    }
+
+    // Abrimos el modal, consultando primero si ya hay una favorita
+    abrirModalFavorita(jugadas);
+}
+
+async function abrirModalFavorita(jugadas) {
+    const modal = document.getElementById("favoritaModal");
+    const input = document.getElementById("favoritaNombre");
+    const titulo = document.getElementById("favoritaModalTitulo");
+    const desc = document.getElementById("favoritaModalDesc");
+    const btnOk = document.getElementById("btnModalConfirmar");
+    const btnCancel = document.getElementById("btnModalCancelar");
+
+    // Consultamos si ya hay una favorita guardada
+    let nombreActual = "";
+    let existeFavorita = false;
+    try {
+        const res = await fetch("/api/favorita");
+        if (res.ok) {
+            const data = await res.json();
+            if (data && data.nombre) {
+                nombreActual = data.nombre;
+                existeFavorita = true;
+            }
+        }
+    } catch (err) {
+        // Si falla la consulta, seguimos como si no existiera
+    }
+
+    if (existeFavorita) {
+        titulo.textContent = "Reemplazar jugada favorita";
+        desc.textContent = `Ya tenés una favorita guardada ("${nombreActual}"). Si confirmás, se va a reemplazar por la jugada actual.`;
+        input.value = nombreActual;
+    } else {
+        titulo.textContent = "Guardar jugada favorita";
+        desc.textContent = "Poné un nombre para identificar esta jugada.";
+        input.value = "Mi jugada favorita";
+    }
+
+    modal.classList.remove("hide");
+    setTimeout(() => input.focus(), 50);
+
+    // Limpiar handlers previos (por si se abrió varias veces)
+    const nuevoBtnOk = btnOk.cloneNode(true);
+    btnOk.parentNode.replaceChild(nuevoBtnOk, btnOk);
+
+    const nuevoBtnCancel = btnCancel.cloneNode(true);
+    btnCancel.parentNode.replaceChild(nuevoBtnCancel, btnCancel);
+
+    function cerrarModal() {
+        modal.classList.add("hide");
+        document.removeEventListener("keydown", onKeyDown);
+        modal.removeEventListener("click", onOverlayClick);
+    }
+
+    function onKeyDown(e) {
+        if (e.key === "Escape") cerrarModal();
+        if (e.key === "Enter") confirmar();
+    }
+
+    function onOverlayClick(e) {
+        // Solo cerrar si clickeó el fondo, no el contenido
+        if (e.target === modal) cerrarModal();
+    }
+
+    async function confirmar() {
+        const nombre = input.value.trim();
+        if (nombre.length === 0) {
+            input.focus();
+            return;
+        }
+
+        cerrarModal();
+
+        try {
+            const res = await fetch("/api/favorita", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre, jugadas })
+            });
+
+            if (res.ok) {
+                mostrarMensaje(existeFavorita
+                    ? `Jugada favorita reemplazada: "${nombre}".`
+                    : `Jugada favorita guardada: "${nombre}".`,
+                    "success");
+                actualizarBotonesFavorita();
+            } else {
+                const err = await res.json().catch(() => ({}));
+                mostrarMensaje("No se pudo guardar: " + (err.error ?? "error desconocido"), "error");
+            }
+        } catch (err) {
+            console.error("Error al guardar favorita:", err);
+            mostrarMensaje("Error al guardar la favorita.", "error");
+        }
+    }
+
+    nuevoBtnOk.addEventListener("click", confirmar);
+    nuevoBtnCancel.addEventListener("click", cerrarModal);
+    document.addEventListener("keydown", onKeyDown);
+    modal.addEventListener("click", onOverlayClick);
+}
+
+async function cargarJugadaFavorita() {
+    if (!window.USER_LOGUEADO) return;
+
+    try {
+        const res = await fetch("/api/favorita");
+        if (!res.ok) {
+            mostrarMensaje("No se pudo cargar la favorita.", "error");
+            return;
+        }
+
+        const data = await res.json();
+        if (!data || !Array.isArray(data.jugadas) || data.jugadas.length === 0) {
+            mostrarMensaje("Todavía no tenés jugada favorita guardada.", "info");
+            return;
+        }
+
+        const tbody = document.querySelector("#tabla tbody");
+        tbody.innerHTML = "";
+
+        for (let i = 0; i < data.jugadas.length; i++) {
+            tbody.innerHTML += crearFilaHTML(i, data.jugadas[i]);
+        }
+
+        const filas = document.querySelectorAll("#tabla tbody tr");
+        for (let i = 0; i < filas.length; i++) {
+            actualizarEstadoApuestasFila(filas[i]);
+        }
+
+        document.getElementById("cantidad").value = data.jugadas.length;
+        actualizarPreview();
+        mostrarMensaje(`Se cargó "${data.nombre ?? 'Mi jugada favorita'}".`, "success");
+    } catch (err) {
+        console.error("Error al cargar favorita:", err);
+        mostrarMensaje("Error al cargar la favorita.", "error");
+    }
+}
+
+async function borrarJugadaFavorita() {
+    if (!window.USER_LOGUEADO) return;
+
+    const ok = confirm("¿Borrar tu jugada favorita guardada?");
+    if (!ok) return;
+
+    try {
+        const res = await fetch("/api/favorita", { method: "DELETE" });
+        if (res.ok) {
+            mostrarMensaje("Jugada favorita borrada.", "success");
+            actualizarBotonesFavorita();
+        } else {
+            mostrarMensaje("No se pudo borrar.", "error");
+        }
+    } catch (err) {
+        console.error("Error al borrar favorita:", err);
+        mostrarMensaje("Error al borrar la favorita.", "error");
+    }
+}
+
+async function actualizarBotonesFavorita() {
+    // Actualiza el texto de los botones Cargar/Borrar favorita
+    // para mostrar el nombre guardado, o el texto genérico si no hay.
+    const btnCargar = document.getElementById("btnCargarFavorita");
+    const btnBorrar = document.getElementById("btnBorrarFavorita");
+
+    if (!btnCargar || !btnBorrar) return;
+
+    if (!window.USER_LOGUEADO) {
+        btnCargar.textContent = "Cargar favorita";
+        btnBorrar.textContent = "Borrar favorita";
+        return;
+    }
+
+    try {
+        const res = await fetch("/api/favorita");
+        if (!res.ok) {
+            btnCargar.textContent = "Cargar favorita";
+            btnBorrar.textContent = "Borrar favorita";
+            return;
+        }
+
+        const data = await res.json();
+        if (data && data.nombre) {
+            const nombreCorto = data.nombre.length > 20
+                ? data.nombre.slice(0, 20) + "…"
+                : data.nombre;
+            btnCargar.textContent = "Cargar " + nombreCorto;
+            btnBorrar.textContent = "Borrar " + nombreCorto;
+        } else {
+            btnCargar.textContent = "Cargar favorita";
+            btnBorrar.textContent = "Borrar favorita";
+        }
+    } catch (err) {
+        btnCargar.textContent = "Cargar favorita";
+        btnBorrar.textContent = "Borrar favorita";
+    }
 }

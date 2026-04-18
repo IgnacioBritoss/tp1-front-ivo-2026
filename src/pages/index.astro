@@ -1,5 +1,9 @@
 ---
+import { getSession } from 'auth-astro/server';
+
 const pageTitle = "Quiniela Britos";
+const session = await getSession(Astro.request);
+const isLoggedIn = !!session;
 ---
 
 <!doctype html>
@@ -11,11 +15,26 @@ const pageTitle = "Quiniela Britos";
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
-    <div class="themeToggleWrap">
-      <button id="themeToggle" class="themeToggle" type="button" aria-label="Cambiar tema">
-        Claro
+<div class="themeToggleWrap" style="display:flex; gap:10px; align-items:center;">
+  {session ? (
+    <>
+      <span style="font-size:14px;">
+        Hola, {session.user?.name ?? session.user?.email}
+      </span>
+      <button class="btn-ghost" type="button" id="btnSignOut">
+        Cerrar sesión
       </button>
-    </div>
+    </>
+  ) : (
+    <button class="btn-primary" type="button" id="btnSignIn">
+      Ingresar con Google
+    </button>
+  )}
+
+  <button id="themeToggle" class="themeToggle" type="button" aria-label="Cambiar tema">
+    Claro
+  </button>
+</div>
 
     <main class="container">
       <section class="card">
@@ -174,6 +193,24 @@ const pageTitle = "Quiniela Britos";
       </section>
     </main>
 
-    <script is:inline src="/main.js"></script>
+<script is:inline define:vars={{ isLoggedIn }}>
+  window.USER_LOGUEADO = isLoggedIn;
+</script>
+
+<script>
+  import { signIn, signOut } from 'auth-astro/client';
+
+  const btnIn = document.getElementById('btnSignIn');
+  if (btnIn) {
+    btnIn.addEventListener('click', () => signIn('google'));
+  }
+
+  const btnOut = document.getElementById('btnSignOut');
+  if (btnOut) {
+    btnOut.addEventListener('click', () => signOut());
+  }
+</script>
+
+<script is:inline src="/main.js"></script>
   </body>
 </html>

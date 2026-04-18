@@ -19,11 +19,9 @@ let resumenGeneral = {
     dineroGanado: 0
 };
 
-document.addEventListener("DOMContentLoaded", function () {
-    // inicia el tema, carga los datos guardados, arma la tabla inicial
-    // y actualiza la vista de la boleta y asigna los eventos a los botones
+document.addEventListener("DOMContentLoaded", async function () {
     iniciarTema();
-    cargarDatos();
+    await cargarDatos();
     crearTabla();
     actualizarPreview();
 
@@ -43,35 +41,28 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function iniciarTema() {
-    // lee el tema guardado y lo aplica.
     let guardado = localStorage.getItem("instantanea_tema");
-
     if (guardado === "dark") {
         document.body.classList.add("dark");
     }
-
     actualizarIconoTema();
 
     let toggle = document.getElementById("themeToggle");
     if (toggle) {
         toggle.addEventListener("click", function () {
             document.body.classList.toggle("dark");
-
             if (document.body.classList.contains("dark")) {
                 localStorage.setItem("instantanea_tema", "dark");
             } else {
                 localStorage.setItem("instantanea_tema", "light");
             }
-
             actualizarIconoTema();
         });
     }
 }
 
 function actualizarIconoTema() {
-    // cambia el texto del boton segun el tema.
     let toggle = document.getElementById("themeToggle");
-
     if (toggle) {
         if (document.body.classList.contains("dark")) {
             toggle.textContent = "Claro";
@@ -82,18 +73,12 @@ function actualizarIconoTema() {
 }
 
 function mostrarMensaje(texto, tipo) {
-    // muestra un mensaje arriba de la pagina.
-    if (!tipo) {
-        tipo = "info";
-    }
-
+    if (!tipo) tipo = "info";
     let box = document.getElementById("messageBox");
-
     if (!box) {
         box = document.createElement("div");
         box.id = "messageBox";
         box.className = "messageBox";
-
         let contenedor = document.querySelector(".container");
         if (contenedor) {
             if (contenedor.firstChild) {
@@ -103,100 +88,94 @@ function mostrarMensaje(texto, tipo) {
             }
         }
     }
-
     box.className = "messageBox " + tipo;
     box.textContent = texto;
 }
 
-function guardarDatos() {
-    // guarda historial, frecuencias y resumen general.
-    localStorage.setItem("instantanea_historialSorteos", JSON.stringify(historialSorteos));
-    localStorage.setItem("instantanea_frecuencia2", JSON.stringify(frecuencia2Cifras));
-    localStorage.setItem("instantanea_frecuencia3", JSON.stringify(frecuencia3Cifras));
-    localStorage.setItem("instantanea_resumenGeneral", JSON.stringify(resumenGeneral));
+async function guardarDatos() {
+    if (!window.USER_LOGUEADO) {
+        localStorage.setItem("instantanea_historialSorteos", JSON.stringify(historialSorteos));
+        localStorage.setItem("instantanea_frecuencia2", JSON.stringify(frecuencia2Cifras));
+        localStorage.setItem("instantanea_frecuencia3", JSON.stringify(frecuencia3Cifras));
+        localStorage.setItem("instantanea_resumenGeneral", JSON.stringify(resumenGeneral));
+        return;
+    }
+
+    try {
+        await fetch("/api/stats", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                boletas_jugadas: resumenGeneral.boletasJugadas,
+                dinero_gastado: resumenGeneral.dineroGastado,
+                dinero_ganado: resumenGeneral.dineroGanado,
+                frecuencia_2_cifras: frecuencia2Cifras,
+                frecuencia_3_cifras: frecuencia3Cifras
+            })
+        });
+    } catch (err) {
+        console.error("Error al guardar en el servidor:", err);
+    }
 }
 
-function cargarDatos() {
-    // recupera lo que ya estaba guardado.
-    let h = localStorage.getItem("instantanea_historialSorteos");
-    let f2 = localStorage.getItem("instantanea_frecuencia2");
-    let f3 = localStorage.getItem("instantanea_frecuencia3");
-    let rg = localStorage.getItem("instantanea_resumenGeneral");
-
-    if (h) {
-        historialSorteos = JSON.parse(h);
+async function cargarDatos() {
+    if (!window.USER_LOGUEADO) {
+        let h = localStorage.getItem("instantanea_historialSorteos");
+        let f2 = localStorage.getItem("instantanea_frecuencia2");
+        let f3 = localStorage.getItem("instantanea_frecuencia3");
+        let rg = localStorage.getItem("instantanea_resumenGeneral");
+        if (h) historialSorteos = JSON.parse(h);
+        if (f2) frecuencia2Cifras = JSON.parse(f2);
+        if (f3) frecuencia3Cifras = JSON.parse(f3);
+        if (rg) resumenGeneral = JSON.parse(rg);
+        return;
     }
 
-    if (f2) {
-        frecuencia2Cifras = JSON.parse(f2);
-    }
+    try {
+        const res = await fetch("/api/stats");
+        if (!res.ok) return;
+        const data = await res.json();
 
-    if (f3) {
-        frecuencia3Cifras = JSON.parse(f3);
-    }
+        resumenGeneral = {
+            boletasJugadas: data.boletas_jugadas ?? 0,
+            dineroGastado: data.dinero_gastado ?? 0,
+            dineroGanado: data.dinero_ganado ?? 0
+        };
 
-    if (rg) {
-        resumenGeneral = JSON.parse(rg);
+        if (Array.isArray(data.frecuencia_2_cifras) && data.frecuencia_2_cifras.length === 100) {
+            frecuencia2Cifras = data.frecuencia_2_cifras;
+        }
+        if (Array.isArray(data.frecuencia_3_cifras) && data.frecuencia_3_cifras.length === 1000) {
+            frecuencia3Cifras = data.frecuencia_3_cifras;
+        }
+    } catch (err) {
+        console.error("Error al cargar del servidor:", err);
     }
 }
 
 function formatearDinero(n) {
-    // convierte un numero al formato de dinero argentino.
     return "$" + Number(n || 0).toLocaleString("es-AR");
 }
 
 function completarConCeros(numero, cifras) {
-    // Completa con ceros a la izquierda.
     let texto = String(numero);
-
     while (texto.length < cifras) {
         texto = "0" + texto;
     }
-
     return texto;
 }
 
 function crearFilaHTML(index, data) {
-    // Arma una fila de la tabla de jugadas.
-    if (!data) {
-        data = {};
-    }
-
-    let numero = "";
-    let cifras = 3;
-    let cabeza = 0;
-    let cinco = 0;
-    let diez = 0;
-
-    if (data.numero !== undefined) {
-        numero = data.numero;
-    }
-
-    if (data.cifras !== undefined) {
-        cifras = data.cifras;
-    }
-
-    if (data.cabeza !== undefined) {
-        cabeza = data.cabeza;
-    }
-
-    if (data.cinco !== undefined) {
-        cinco = data.cinco;
-    }
-
-    if (data.diez !== undefined) {
-        diez = data.diez;
-    }
+    if (!data) data = {};
+    let numero = data.numero !== undefined ? data.numero : "";
+    let cifras = data.cifras !== undefined ? data.cifras : 3;
+    let cabeza = data.cabeza !== undefined ? data.cabeza : 0;
+    let cinco = data.cinco !== undefined ? data.cinco : 0;
+    let diez = data.diez !== undefined ? data.diez : 0;
 
     let placeholderNumero = "7";
-
-if (cifras === 2) {
-    placeholderNumero = "67";
-}
-
-if (cifras === 3) {
-    placeholderNumero = "677";
-}
+    if (cifras === 2) placeholderNumero = "67";
+    if (cifras === 3) placeholderNumero = "677";
 
     return `
         <tr>
@@ -216,12 +195,8 @@ if (cifras === 3) {
 }
 
 function crearTabla() {
-// crea la cantidad de filas indicada y prepara la tabla para jugar.
-
     let cantidad = parseInt(document.getElementById("cantidad").value);
-    if (!cantidad || cantidad < 1) {
-        cantidad = 3;
-    }
+    if (!cantidad || cantidad < 1) cantidad = 3;
 
     let tbody = document.querySelector("#tabla tbody");
     tbody.innerHTML = "";
@@ -240,8 +215,6 @@ function crearTabla() {
 }
 
 function actualizarEstadoApuestasFila(fila) {
- // habilita o bloquea apuestas segun la cantidad de cifras elegida.
-
     let cifras = parseInt(fila.querySelector(".cifras").value);
     let inputCinco = fila.querySelector(".cinco");
     let inputDiez = fila.querySelector(".diez");
@@ -258,8 +231,6 @@ function actualizarEstadoApuestasFila(fila) {
 }
 
 function alternarCifras(boton) {
- // cambia la cantidad de cifras de la fila y ajusta sus valores.
-
     let fila = boton.closest("tr");
     let inputCifras = fila.querySelector(".cifras");
     let inputNumero = fila.querySelector(".numero");
@@ -284,9 +255,7 @@ function alternarCifras(boton) {
 }
 
 function cargarJugadaClasica() {
-    // es la judada que jugue en verano y dio sus frutos 
     let tbody = document.querySelector("#tabla tbody");
-
     let clasica = [
         { numero: 64, cifras: 2, cabeza: 100, cinco: 0, diez: 100 },
         { numero: 32, cifras: 2, cabeza: 100, cinco: 0, diez: 100 },
@@ -294,7 +263,6 @@ function cargarJugadaClasica() {
     ];
 
     tbody.innerHTML = "";
-
     for (let i = 0; i < clasica.length; i++) {
         tbody.innerHTML += crearFilaHTML(i, clasica[i]);
     }
@@ -310,22 +278,17 @@ function cargarJugadaClasica() {
 }
 
 function reindexarFilas() {
-    // Reacomoda la numeracion de las filas.
     let filas = document.querySelectorAll("#tabla tbody tr");
-
     for (let i = 0; i < filas.length; i++) {
         filas[i].children[0].innerHTML = "<strong>" + (i + 1) + "</strong>";
     }
-
     document.getElementById("cantidad").value = filas.length;
 }
 
 function limpiarJugadas() {
     let filas = document.querySelectorAll("#tabla tbody tr");
-
     for (let i = 0; i < filas.length; i++) {
         let tr = filas[i];
-
         tr.querySelector(".numero").value = "";
         tr.querySelector(".cifras").value = "3";
         tr.querySelector(".cifrasBtn").textContent = "3";
@@ -345,30 +308,23 @@ function limpiarJugadas() {
 }
 
 function vaciarMontos() {
-    // pone en cero todos los importes.
     let inputs = document.querySelectorAll(".cabeza, .cinco, .diez");
-
     for (let i = 0; i < inputs.length; i++) {
         inputs[i].value = 0;
     }
-
     actualizarPreview();
     mostrarMensaje("Los montos fueron vaciados.", "info");
 }
 
 function setMontoRapido(valor) {
-    // Carga un valor rapido en el input general.
     document.getElementById("montoMasivo").value = valor;
 }
 
 function aplicarMontoMasivo(tipo) {
     let monto = parseInt(document.getElementById("montoMasivo").value);
-    if (!monto) {
-        monto = 0;
-    }
+    if (!monto) monto = 0;
 
     let filas = document.querySelectorAll("#tabla tbody tr");
-
     for (let i = 0; i < filas.length; i++) {
         let fila = filas[i];
         let cifras = parseInt(fila.querySelector(".cifras").value);
@@ -376,56 +332,37 @@ function aplicarMontoMasivo(tipo) {
         if (tipo === "cabeza" || tipo === "todos") {
             fila.querySelector(".cabeza").value = monto;
         }
-
         if ((tipo === "cinco" || tipo === "todos") && cifras !== 1) {
             fila.querySelector(".cinco").value = monto;
         }
-
         if ((tipo === "diez" || tipo === "todos") && cifras !== 1) {
             fila.querySelector(".diez").value = monto;
         }
     }
-
     actualizarPreview();
 }
 
 function ajustarSegunCifras(inputNumero) {
-    // Limita el numero segun se juegue a 1, 2 o 3 cifras.
     let fila = inputNumero.closest("tr");
     let cifras = parseInt(fila.querySelector(".cifras").value);
 
-    if (cifras === 1) {
-        inputNumero.max = 9;
-    } else if (cifras === 2) {
-        inputNumero.max = 99;
-    } else {
-        inputNumero.max = 999;
-    }
+    if (cifras === 1) inputNumero.max = 9;
+    else if (cifras === 2) inputNumero.max = 99;
+    else inputNumero.max = 999;
 
     if (inputNumero.value !== "") {
         let valor = parseInt(inputNumero.value);
-        if (!valor) {
-            valor = 0;
-        }
+        if (!valor) valor = 0;
 
-        if (cifras === 1 && valor > 9) {
-            valor = valor % 10;
-        }
-
-        if (cifras === 2 && valor > 99) {
-            valor = valor % 100;
-        }
-
-        if (cifras === 3 && valor > 999) {
-            valor = valor % 1000;
-        }
+        if (cifras === 1 && valor > 9) valor = valor % 10;
+        if (cifras === 2 && valor > 99) valor = valor % 100;
+        if (cifras === 3 && valor > 999) valor = valor % 1000;
 
         inputNumero.value = valor;
     }
 }
 
 function obtenerJugadasDesdeTabla() {
-    // Lee la tabla y arma el arreglo de jugadas validas.
     let filas = document.querySelectorAll("#tabla tbody tr");
     let jugadas = [];
 
@@ -439,51 +376,30 @@ function obtenerJugadasDesdeTabla() {
 
         if (numeroRaw !== "") {
             let numero = parseInt(numeroRaw);
-
             if (!isNaN(numero)) {
-
-            if (cifras === 1) {
-                numero = numero % 10;
-            }
-
-            if (cifras === 2) {
-                  numero = numero % 100;
-            }
-
-            if (cifras === 3) {
-              numero = numero % 1000;
-            }       
+                if (cifras === 1) numero = numero % 10;
+                if (cifras === 2) numero = numero % 100;
+                if (cifras === 3) numero = numero % 1000;
 
                 if (cabeza > 0 || cinco > 0 || diez > 0) {
-                    jugadas.push({
-                        numero: numero,
-                        cifras: cifras,
-                        cabeza: cabeza,
-                        cinco: cinco,
-                        diez: diez
-                    });
+                    jugadas.push({ numero, cifras, cabeza, cinco, diez });
                 }
             }
         }
     }
-
     return jugadas;
 }
 
 function actualizarPreview() {
-    // Actualiza el resumen de la boleta antes de jugar.
     jugadasGlobal = obtenerJugadasDesdeTabla();
 
     let cantidadSorteos = parseInt(document.getElementById("cantidadSorteos").value);
-    if (!cantidadSorteos || cantidadSorteos < 1) {
-        cantidadSorteos = 1;
-    }
+    if (!cantidadSorteos || cantidadSorteos < 1) cantidadSorteos = 1;
 
     document.getElementById("numerosBoleta").textContent = jugadasGlobal.length;
     document.getElementById("sorteosBoleta").textContent = cantidadSorteos;
 
     let totalBoleta = 0;
-
     for (let i = 0; i < jugadasGlobal.length; i++) {
         totalBoleta += jugadasGlobal[i].cabeza;
         totalBoleta += jugadasGlobal[i].cinco;
@@ -494,7 +410,6 @@ function actualizarPreview() {
     document.getElementById("totalApostado").textContent = formatearDinero(totalFinal);
 
     let cont = document.getElementById("ticketContenido");
-
     if (jugadasGlobal.length === 0) {
         cont.className = "empty";
         cont.innerHTML = "Carga tus numeros y montos para ver la boleta.";
@@ -502,10 +417,8 @@ function actualizarPreview() {
     }
 
     let filasHTML = "";
-
     for (let i = 0; i < jugadasGlobal.length; i++) {
         let j = jugadasGlobal[i];
-
         filasHTML += `
             <tr>
                 <td><strong>${completarConCeros(j.numero, j.cifras)}</strong></td>
@@ -522,18 +435,11 @@ function actualizarPreview() {
         <table>
             <thead>
                 <tr>
-                    <th>Numero</th>
-                    <th>Cifras</th>
-                    <th>Cabeza</th>
-                    <th>A los 5</th>
-                    <th>A los 10</th>
+                    <th>Numero</th><th>Cifras</th><th>Cabeza</th><th>A los 5</th><th>A los 10</th>
                 </tr>
             </thead>
-            <tbody>
-                ${filasHTML}
-            </tbody>
+            <tbody>${filasHTML}</tbody>
         </table>
-
         <div style="margin-top:12px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
             <div><strong>Esta boleta se jugara en:</strong> ${cantidadSorteos} sorteo(s)</div>
             <div><strong>Total final:</strong> ${formatearDinero(totalFinal)}</div>
@@ -542,21 +448,16 @@ function actualizarPreview() {
 }
 
 function generarSorteo() {
-    // Genera 10 numeros entre 000 y 999.
-     let nums = [];
-
+    let nums = [];
     while (nums.length < 10) {
         let n = Math.floor(Math.random() * 1000);
         nums.push(n);
     }
-
     return nums;
 }
 
 function actualizarHistorialFrecuencias(sorteo) {
-    // Suma el sorteo al historial y actualiza frecuencias.
     historialSorteos.push(sorteo);
-
     for (let i = 0; i < sorteo.length; i++) {
         let num = sorteo[i];
         frecuencia3Cifras[num]++;
@@ -565,18 +466,14 @@ function actualizarHistorialFrecuencias(sorteo) {
 }
 
 function mostrarSorteos() {
-    // Muestra en pantalla los sorteos generados.
     let box = document.getElementById("sorteo");
     let lista = document.getElementById("sorteosLista");
-
     box.classList.remove("hide");
 
     let html = "";
-
     for (let idx = 0; idx < sorteosGlobal.length; idx++) {
         let sorteo = sorteosGlobal[idx];
         let bolillas = "";
-
         for (let i = 0; i < sorteo.length; i++) {
             bolillas += `
                 <div class="bolilla">
@@ -585,22 +482,17 @@ function mostrarSorteos() {
                 </div>
             `;
         }
-
         html += `
             <div class="sorteoItem">
                 <h4>Sorteo ${idx + 1}</h4>
-                <div class="bolillasGrid">
-                    ${bolillas}
-                </div>
+                <div class="bolillasGrid">${bolillas}</div>
             </div>
         `;
     }
-
     lista.innerHTML = html;
 }
 
 function calcularPremioDeUnSorteo(jugadas, sorteo) {
-    // Calcula cuanto gano la boleta en un solo sorteo.
     let premio = 0;
     let aciertos = [];
 
@@ -609,104 +501,52 @@ function calcularPremioDeUnSorteo(jugadas, sorteo) {
         let numComp;
         let sorteoComp = [];
 
-        if (j.cifras === 1) {
-            numComp = j.numero % 10;
-        } else if (j.cifras === 2) {
-            numComp = j.numero % 100;
-        } else {
-            numComp = j.numero;
-        }
+        if (j.cifras === 1) numComp = j.numero % 10;
+        else if (j.cifras === 2) numComp = j.numero % 100;
+        else numComp = j.numero;
 
         for (let k = 0; k < sorteo.length; k++) {
-            if (j.cifras === 1) {
-                sorteoComp.push(sorteo[k] % 10);
-            } else if (j.cifras === 2) {
-                sorteoComp.push(sorteo[k] % 100);
-            } else {
-                sorteoComp.push(sorteo[k]);
-            }
+            if (j.cifras === 1) sorteoComp.push(sorteo[k] % 10);
+            else if (j.cifras === 2) sorteoComp.push(sorteo[k] % 100);
+            else sorteoComp.push(sorteo[k]);
         }
 
-        let pagaCabeza = 70;
-        let pagaCinco = 14;
-        let pagaDiez = 7;
-        
-        if (j.cifras === 1) {
-            pagaCabeza = 7;
-            pagaCinco = 0;
-            pagaDiez = 0;
-        } else if (j.cifras === 2) {
-            pagaCabeza = 70;
-            pagaCinco = 14;
-            pagaDiez = 7;
-        } else if (j.cifras === 3) {
-            pagaCabeza = 600; 
-            pagaCinco = 100;
-            pagaDiez = 50;
-        }
+        let pagaCabeza = 70, pagaCinco = 14, pagaDiez = 7;
+        if (j.cifras === 1) { pagaCabeza = 7; pagaCinco = 0; pagaDiez = 0; }
+        else if (j.cifras === 2) { pagaCabeza = 70; pagaCinco = 14; pagaDiez = 7; }
+        else if (j.cifras === 3) { pagaCabeza = 600; pagaCinco = 100; pagaDiez = 50; }
 
-        // VERIFICAR SI GANO A LA CABEZA
         if (j.cabeza > 0 && numComp === sorteoComp[0]) {
             let gana = j.cabeza * pagaCabeza;
             premio += gana;
-            aciertos.push({
-                numero: completarConCeros(j.numero, j.cifras),
-                tipo: "Cabeza",
-                importe: j.cabeza,
-                premio: gana
-            });
+            aciertos.push({ numero: completarConCeros(j.numero, j.cifras), tipo: "Cabeza", importe: j.cabeza, premio: gana });
         }
 
         let estaEnCinco = false;
         for (let a = 0; a < 5; a++) {
-            if (sorteoComp[a] === numComp) {
-                estaEnCinco = true;
-                break;
-            }
+            if (sorteoComp[a] === numComp) { estaEnCinco = true; break; }
         }
-
-        // VERIFICAR SI GANO A LOS 5
         if (j.cifras !== 1 && j.cinco > 0 && estaEnCinco) {
-    let gana = j.cinco * pagaCinco;
-    premio += gana;
-    aciertos.push({
-        numero: completarConCeros(j.numero, j.cifras),
-        tipo: "A los 5",
-        importe: j.cinco,
-        premio: gana
-    });
-}
+            let gana = j.cinco * pagaCinco;
+            premio += gana;
+            aciertos.push({ numero: completarConCeros(j.numero, j.cifras), tipo: "A los 5", importe: j.cinco, premio: gana });
+        }
 
         let estaEnDiez = false;
         for (let b = 0; b < sorteoComp.length; b++) {
-            if (sorteoComp[b] === numComp) {
-                estaEnDiez = true;
-                break;
-            }
+            if (sorteoComp[b] === numComp) { estaEnDiez = true; break; }
         }
-
-        // VERIFICAR SI GANO A LOS 10
         if (j.cifras !== 1 && j.diez > 0 && estaEnDiez) {
-    let gana = j.diez * pagaDiez;
-    premio += gana;
-    aciertos.push({
-        numero: completarConCeros(j.numero, j.cifras),
-        tipo: "A los 10",
-        importe: j.diez,
-        premio: gana
-    });
-}
+            let gana = j.diez * pagaDiez;
+            premio += gana;
+            aciertos.push({ numero: completarConCeros(j.numero, j.cifras), tipo: "A los 10", importe: j.diez, premio: gana });
+        }
     }
 
-    return {
-        premio: premio,
-        aciertos: aciertos
-    };
+    return { premio, aciertos };
 }
 
-function jugar() {
-    // Toma la boleta cargada, genera los sorteos, calcula premios
-    // y actualiza el historial general.
+async function jugar() {
     actualizarPreview();
     jugadasGlobal = obtenerJugadasDesdeTabla();
 
@@ -716,9 +556,7 @@ function jugar() {
     }
 
     let cantidadSorteos = parseInt(document.getElementById("cantidadSorteos").value);
-    if (!cantidadSorteos || cantidadSorteos < 1) {
-        cantidadSorteos = 1;
-    }
+    if (!cantidadSorteos || cantidadSorteos < 1) cantidadSorteos = 1;
 
     let costoBoleta = 0;
     for (let i = 0; i < jugadasGlobal.length; i++) {
@@ -726,7 +564,6 @@ function jugar() {
         costoBoleta += jugadasGlobal[i].cinco;
         costoBoleta += jugadasGlobal[i].diez;
     }
-
     let costoTotal = costoBoleta * cantidadSorteos;
 
     sorteosGlobal = [];
@@ -757,7 +594,27 @@ function jugar() {
     resumenGeneral.dineroGastado += costoTotal;
     resumenGeneral.dineroGanado += premioTotal;
 
-    guardarDatos();
+    await guardarDatos();
+
+    if (window.USER_LOGUEADO) {
+        try {
+            await fetch("/api/boletas", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    jugadas: jugadasGlobal,
+                    sorteos: sorteosGlobal,
+                    cantidadSorteos: cantidadSorteos,
+                    costoTotal: costoTotal,
+                    premioTotal: premioTotal,
+                    aciertos: todosLosAciertos
+                })
+            });
+        } catch (err) {
+            console.error("Error al guardar boleta:", err);
+        }
+    }
+
     mostrarSorteos();
     mostrarResultadoFinal(cantidadSorteos, costoTotal, premioTotal, todosLosAciertos);
 
@@ -769,16 +626,13 @@ function jugar() {
 }
 
 function mostrarResultadoFinal(cantidadSorteos, costoTotal, premioTotal, todosLosAciertos) {
-    // Muestra el resultado final de la jugada.
     let res = document.getElementById("resultado");
     res.classList.remove("hide");
 
     if (premioTotal > 0) {
         let htmlAciertos = "";
-
         for (let i = 0; i < todosLosAciertos.length; i++) {
             let a = todosLosAciertos[i];
-
             htmlAciertos += `
                 <div class="hit">
                     <div>
@@ -799,16 +653,12 @@ function mostrarResultadoFinal(cantidadSorteos, costoTotal, premioTotal, todosLo
                 </div>
                 <div class="ganancia win">${formatearDinero(premioTotal)}</div>
             </div>
-
             <div style="margin-top:10px;">
                 <strong>Gastado:</strong> ${formatearDinero(costoTotal)} &nbsp; | &nbsp;
                 <strong>Ganado:</strong> ${formatearDinero(premioTotal)} &nbsp; | &nbsp;
                 <strong>Balance:</strong> ${formatearDinero(premioTotal - costoTotal)}
             </div>
-
-            <div class="aciertosList">
-                ${htmlAciertos}
-            </div>
+            <div class="aciertosList">${htmlAciertos}</div>
         `;
     } else {
         res.className = "resultados perdedor";
@@ -820,7 +670,6 @@ function mostrarResultadoFinal(cantidadSorteos, costoTotal, premioTotal, todosLo
                 </div>
                 <div class="ganancia loss">${formatearDinero(0)}</div>
             </div>
-
             <div style="margin-top:10px;">
                 <strong>Gastado:</strong> ${formatearDinero(costoTotal)} &nbsp; | &nbsp;
                 <strong>Balance:</strong> ${formatearDinero(-costoTotal)}
@@ -830,55 +679,34 @@ function mostrarResultadoFinal(cantidadSorteos, costoTotal, premioTotal, todosLo
 }
 
 function topFrecuentes(arr, cantidad, cifras, asc) {
-    // Ordena los numeros por cantidad de apariciones y arma el ranking visual.
-    if (asc === undefined) {
-        asc = false;
-    }
+    if (asc === undefined) asc = false;
 
     let lista = [];
-
     for (let i = 0; i < arr.length; i++) {
-        lista.push({
-            numero: i,
-            veces: arr[i]
-        });
+        lista.push({ numero: i, veces: arr[i] });
     }
 
     lista.sort(function (a, b) {
-        if (asc) {
-            return a.veces - b.veces;
-        } else {
-            return b.veces - a.veces;
-        }
+        if (asc) return a.veces - b.veces;
+        return b.veces - a.veces;
     });
 
     let maximo = 1;
     for (let i = 0; i < lista.length; i++) {
-        if (lista[i].veces > maximo) {
-            maximo = lista[i].veces;
-        }
+        if (lista[i].veces > maximo) maximo = lista[i].veces;
     }
 
     let html = "";
     let limite = cantidad;
-
-    if (lista.length < cantidad) {
-        limite = lista.length;
-    }
+    if (lista.length < cantidad) limite = lista.length;
 
     for (let i = 0; i < limite; i++) {
         let e = lista[i];
         let n = completarConCeros(e.numero, cifras);
         let porcentaje = (e.veces / maximo) * 100;
+        if (porcentaje < 4) porcentaje = 4;
 
-        if (porcentaje < 4) {
-            porcentaje = 4;
-        }
-
-        let textoVeces = "veces";
-        if (e.veces === 1) {
-            textoVeces = "vez";
-        }
+        let textoVeces = e.veces === 1 ? "vez" : "veces";
 
         html += `
             <div class="rankItem">
@@ -892,12 +720,10 @@ function topFrecuentes(arr, cantidad, cifras, asc) {
             </div>
         `;
     }
-
     return html;
 }
 
 function verHistorial() {
-    // Actualiza la tarjeta de estadisticas con los datos acumulados.
     let div = document.getElementById("estadisticas");
     document.getElementById("estadisticasCard").classList.remove("hide");
 
@@ -907,154 +733,94 @@ function verHistorial() {
     let frios3 = topFrecuentes(frecuencia3Cifras, 10, 3, true);
 
     let balance = resumenGeneral.dineroGanado - resumenGeneral.dineroGastado;
-
-    let textoTop = "-";
-    if (historialSorteos.length > 0) {
-        textoTop = "Top 10";
-    }
+    let textoTop = historialSorteos.length > 0 ? "Top 10" : "-";
 
     div.innerHTML = `
         <div class="statCards" style="margin-bottom:14px;">
-            <div class="stat">
-                <span>Boletas jugadas</span>
-                <strong>${resumenGeneral.boletasJugadas}</strong>
-            </div>
-            <div class="stat">
-                <span>Dinero gastado</span>
-                <strong>${formatearDinero(resumenGeneral.dineroGastado)}</strong>
-            </div>
-            <div class="stat">
-                <span>Dinero ganado</span>
-                <strong>${formatearDinero(resumenGeneral.dineroGanado)}</strong>
-            </div>
-            <div class="stat">
-                <span>Balance</span>
-                <strong>${formatearDinero(balance)}</strong>
-            </div>
-            <div class="stat">
-                <span>Calientes 2 cifras</span>
-                <strong>${textoTop}</strong>
-            </div>
-            <div class="stat">
-                <span>Calientes 3 cifras</span>
-                <strong>${textoTop}</strong>
-            </div>
+            <div class="stat"><span>Boletas jugadas</span><strong>${resumenGeneral.boletasJugadas}</strong></div>
+            <div class="stat"><span>Dinero gastado</span><strong>${formatearDinero(resumenGeneral.dineroGastado)}</strong></div>
+            <div class="stat"><span>Dinero ganado</span><strong>${formatearDinero(resumenGeneral.dineroGanado)}</strong></div>
+            <div class="stat"><span>Balance</span><strong>${formatearDinero(balance)}</strong></div>
+            <div class="stat"><span>Calientes 2 cifras</span><strong>${textoTop}</strong></div>
+            <div class="stat"><span>Calientes 3 cifras</span><strong>${textoTop}</strong></div>
         </div>
-
         <div class="columns2">
-            <div class="statsBox">
-                <h4>Calientes 2 cifras</h4>
-                <div class="rankList">${top2}</div>
-            </div>
-
-            <div class="statsBox">
-                <h4>Calientes 3 cifras</h4>
-                <div class="rankList">${top3}</div>
-            </div>
-
-            <div class="statsBox">
-                <h4>Frios 2 cifras</h4>
-                <div class="rankList">${frios2}</div>
-            </div>
-
-            <div class="statsBox">
-                <h4>Frios 3 cifras</h4>
-                <div class="rankList">${frios3}</div>
-            </div>
+            <div class="statsBox"><h4>Calientes 2 cifras</h4><div class="rankList">${top2}</div></div>
+            <div class="statsBox"><h4>Calientes 3 cifras</h4><div class="rankList">${top3}</div></div>
+            <div class="statsBox"><h4>Frios 2 cifras</h4><div class="rankList">${frios2}</div></div>
+            <div class="statsBox"><h4>Frios 3 cifras</h4><div class="rankList">${frios3}</div></div>
         </div>
     `;
 }
 
-function resetearHistorial() {
-    // Borra el historial completo y reinicia los contadores.
+async function resetearHistorial() {
     historialSorteos = [];
     frecuencia2Cifras = [];
     frecuencia3Cifras = [];
 
-    for (let i = 0; i < 100; i++) {
-        frecuencia2Cifras.push(0);
+    for (let i = 0; i < 100; i++) frecuencia2Cifras.push(0);
+    for (let i = 0; i < 1000; i++) frecuencia3Cifras.push(0);
+
+    resumenGeneral = { boletasJugadas: 0, dineroGastado: 0, dineroGanado: 0 };
+
+    if (window.USER_LOGUEADO) {
+        try {
+            await fetch("/api/stats", { method: "DELETE" });
+        } catch (err) {
+            console.error("Error al resetear:", err);
+        }
+    } else {
+        localStorage.removeItem("instantanea_historialSorteos");
+        localStorage.removeItem("instantanea_frecuencia2");
+        localStorage.removeItem("instantanea_frecuencia3");
+        localStorage.removeItem("instantanea_resumenGeneral");
     }
 
-    for (let i = 0; i < 1000; i++) {
-        frecuencia3Cifras.push(0);
-    }
-
-    resumenGeneral = {
-        boletasJugadas: 0,
-        dineroGastado: 0,
-        dineroGanado: 0
-    };
-
-    guardarDatos();
     document.getElementById("estadisticasCard").classList.add("hide");
     document.getElementById("estadisticas").innerHTML = "";
     mostrarMensaje("Historial y balance borrados.", "success");
 }
 
 function hayHistorial3Cifras() {
-    // Detecta si ya hubo sorteos guardados.
     for (let i = 0; i < frecuencia3Cifras.length; i++) {
-        if (frecuencia3Cifras[i] > 0) {
-            return true;
-        }
+        if (frecuencia3Cifras[i] > 0) return true;
     }
-
     return false;
 }
 
 function elegirNumeroSuerte() {
-    // Si hay historial, toma uno al azar entre los 20 mas salidores.
-    // Si no hay historial, genera uno aleatorio.
     let huboHistorial = hayHistorial3Cifras();
 
     if (huboHistorial) {
         let lista = [];
-
         for (let i = 0; i < frecuencia3Cifras.length; i++) {
-            lista.push({
-                numero: i,
-                veces: frecuencia3Cifras[i]
-            });
+            lista.push({ numero: i, veces: frecuencia3Cifras[i] });
         }
-
-        lista.sort(function (a, b) {
-            return b.veces - a.veces;
-        });
+        lista.sort(function (a, b) { return b.veces - a.veces; });
 
         let top = [];
-        for (let i = 0; i < 20 && i < lista.length; i++) {
-            top.push(lista[i]);
-        }
+        for (let i = 0; i < 20 && i < lista.length; i++) top.push(lista[i]);
 
         let posicion = Math.floor(Math.random() * top.length);
         let elegido = top[posicion];
-
-        if (elegido) {
-            return elegido.numero;
-        } else {
-            return Math.floor(Math.random() * 1000);
-        }
+        if (elegido) return elegido.numero;
+        return Math.floor(Math.random() * 1000);
     }
-
     return Math.floor(Math.random() * 1000);
 }
 
 function girarNumeroSuerte() {
-    // Hace la animacion del numero de la suerte y muestra el resultado final.
     let box = document.getElementById("luckyBox");
     let label = document.getElementById("luckyLabel");
     let btn = document.getElementById("luckySpinBtn");
 
-    if (!box || !label || !btn) {
-        return;
-    }
+    if (!box || !label || !btn) return;
 
     btn.disabled = true;
     box.classList.add("spinning");
     label.textContent = "Girando...";
 
     let contador = 0;
-
     let intervalo = setInterval(function () {
         let random = Math.floor(Math.random() * 1000);
         box.textContent = completarConCeros(random, 3);
@@ -1063,17 +829,13 @@ function girarNumeroSuerte() {
 
     setTimeout(function () {
         clearInterval(intervalo);
-
         let finalNum = elegirNumeroSuerte();
         box.classList.remove("spinning");
         box.textContent = completarConCeros(finalNum, 3);
 
-        let origen = "";
-        if (hayHistorial3Cifras()) {
-            origen = "Recomendado a partir de tus sorteos guardados.";
-        } else {
-            origen = "Recomendacion aleatoria porque todavia no hay historial.";
-        }
+        let origen = hayHistorial3Cifras()
+            ? "Recomendado a partir de tus sorteos guardados."
+            : "Recomendacion aleatoria porque todavia no hay historial.";
 
         label.textContent = origen;
         btn.disabled = false;

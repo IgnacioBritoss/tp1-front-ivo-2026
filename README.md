@@ -168,7 +168,7 @@ Los cambios entran a `main` solo vía merge desde `develop`, que a su vez recibe
 
 ## Estado del proyecto
 
-### Entrega del 30/4 (parcial)
+### Entrega del 30/4 
 - [x] Setup inicial del repositorio y ramas.
 - [x] Migración de Astro estático a Astro SSR desplegado en Vercel.
 - [x] Base de datos Neon conectada y schema aplicado.
@@ -177,12 +177,12 @@ Los cambios entran a `main` solo vía merge desde `develop`, que a su vez recibe
 - [x] Historial de últimas 20 boletas.
 
 ### Pendiente para la entrega final
-- [ ] Jugada favorita personalizada del usuario (ya está el schema, falta UI + endpoints).
-- [ ] Vista de historial de boletas anteriores en la UI.
-- [ ] Edición de datos del usuario (nombre, avatar).
-- [ ] Utilización de un CDN para imágenes de perfil.
-- [ ] Suma del segundo integrante al proyecto.
-- [ ] Uso consistente de Pull Requests para todos los merges.
+- [x] Jugada favorita personalizada del usuario (ya está el schema, falta UI + endpoints).
+- [x] Vista de historial de boletas anteriores en la UI.
+- [x] Edición de datos del usuario (nombre, avatar).
+- [x] Utilización de un CDN para imágenes de perfil.
+- [x] Suma del segundo integrante al proyecto.
+- [x] Uso consistente de Pull Requests para todos los merges.
 
 ---
 

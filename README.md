@@ -25,10 +25,11 @@ Sin iniciar sesión la app funciona en modo local (los datos quedan en `localSto
 
 | Capa | Tecnología | Justificación |
 |------|-----------|---------------|
-| Frontend | [Astro](https://astro.build) v5 | La app ya estaba armada en Astro. Al migrar a modo `server` con el adapter de Vercel, ganamos SSR y rutas de API sin tener que cambiar de framework. |
-| Autenticación | [Auth.js](https://authjs.dev) (`auth-astro`) con Google OAuth | Librería estándar del ecosistema JS, soporte oficial para Astro. Usamos estrategia JWT (sin adapter de DB) por simplicidad. |
-| Base de datos | [Neon](https://neon.tech) (PostgreSQL serverless) | Integración nativa con Vercel, plan free generoso, driver serverless optimizado para funciones edge. Migración directa desde el ex "Vercel Postgres". |
-| Driver SQL | `@neondatabase/serverless` | Driver oficial de Neon, compatible con entornos serverless y templates tagged para queries seguras contra SQL injection. |
+| Frontend | [Astro](https://astro.build) v5 | La app ya estaba armada en Astro. Al migrar a modo `server` con el adapter de Vercel, ganamos SSR y rutas de API sin cambiar de framework. |
+| Autenticación | OAuth 2.0 de Google implementado manualmente + JWT | Inicialmente se usó `auth-astro`, pero tiene un bug conocido en producción con Vercel donde detecta incorrectamente el host como `localhost`. Se optó por implementar el flujo OAuth desde cero usando los endpoints oficiales de Google y `jose` para firmar sesiones JWT. Más robusto y sin dependencias de terceros frágiles. |
+| Base de datos | [Neon](https://neon.tech) (PostgreSQL serverless) | Integración nativa con Vercel, plan free generoso, driver serverless optimizado para funciones edge. |
+| Driver SQL | `@neondatabase/serverless` | Driver oficial de Neon, compatible con serverless y templates tagged para queries seguras contra SQL injection. |
+| CDN de avatars | [DiceBear](https://dicebear.com) | Servicio de generación de avatars SVG por URL. No requiere cuenta ni almacenamiento propio. |
 | Deploy | [Vercel](https://vercel.com) | Deploy automático por cada push, integración nativa con Astro y Neon, variables de entorno gestionadas desde el panel. |
 
 ---
@@ -187,10 +188,14 @@ Los cambios entran a `main` solo vía merge desde `develop`, que a su vez recibe
 
 ## Decisiones técnicas relevantes
 
-- **Auth.js sin adapter de base de datos.** Se optó por la estrategia JWT (sesión firmada en cookie) en lugar de almacenar sesiones en Postgres. Razón: el adapter de Neon para Auth.js está en estado experimental y agregaba complejidad sin valor para esta entrega. El `user_id` se resuelve desde el email de la sesión y se hace `upsert` en la tabla `users` en cada request autenticado, garantizando que el usuario siempre existe en la DB cuando se guarda información suya.
+- **OAuth manual en vez de librería de auth.** Se intentó usar `auth-astro` pero presentaba un bug conocido en producción sobre Vercel donde el host se detectaba como `localhost`, rompiendo todo el flujo de signin con error 403 "Cross-site POST form submissions are forbidden". La solución definitiva fue implementar el flujo OAuth 2.0 de Google manualmente: endpoints propios `/api/auth/login`, `/api/auth/callback` y `/api/auth/logout`, manejo de sesión vía JWT firmado con `jose` y almacenado en cookies HttpOnly Secure SameSite=Lax. El helper `getOrigin()` lee `x-forwarded-host` y `x-forwarded-proto` para construir correctamente las URLs en entornos serverless.
 
-- **`JSONB` para frecuencias y jugadas.** Las frecuencias son arrays de 100 y 1000 enteros; las jugadas y sorteos son estructuras variables. Guardarlos como `jsonb` evita tener que normalizar y simplifica la lectura/escritura desde el frontend.
+- **`JSONB` para frecuencias y jugadas.** Las frecuencias son arrays de 100 y 1000 enteros; las jugadas y sorteos son estructuras variables. Guardarlos como `jsonb` evita normalizar y simplifica la lectura/escritura.
 
-- **Modo dual (con y sin login).** La app no obliga a iniciar sesión para ser usada. Sin login, los datos se guardan en `localStorage` como estaba originalmente; con login, se sincronizan contra Neon. Esto permite que la app sea usable para cualquier visitante y a la vez cumple el requisito de persistencia para usuarios registrados.
+- **Modo dual (con y sin login).** La app no obliga a iniciar sesión. Sin login, los datos se guardan en `localStorage` como estaba originalmente; con login, se sincronizan contra Neon.
 
-- **Límite de 20 boletas en historial.** Para evitar crecimiento ilimitado de la tabla `boletas`, cada insert ejecuta también un `DELETE` que mantiene solo las 20 más recientes del usuario.
+- **Límite de 20 boletas en historial.** Para evitar crecimiento ilimitado, cada insert ejecuta un `DELETE` que mantiene solo las 20 más recientes por usuario.
+
+- **Validación de montos en 3 capas.** Frontend (HTML `max` + clamping JS) y backend (validación estricta contra límites conocidos). Evita que un usuario malicioso salte las validaciones del navegador y mande montos gigantes que rompan la DB.
+
+- **Avatars desde CDN sin gestión de archivos.** DiceBear genera SVGs únicos por seed. No necesitamos storage ni uploads. Cumple el requisito de CDN del TP sin complejidad extra.

@@ -1087,6 +1087,12 @@ body.dark .messageBox.error{
     gap:10px;
     max-height:340px;
     overflow-y:auto;
+    scrollbar-width:none;        /* Firefox */
+    -ms-overflow-style:none;     /* IE y Edge viejos */
+}
+
+.avatarsGrid::-webkit-scrollbar{
+    display:none;                /* Chrome, Safari, Edge nuevos */
 }
 
 .avatarOption{

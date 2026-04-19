@@ -783,6 +783,13 @@ function verHistorial() {
 }
 
 async function resetearHistorial() {
+    const ok = await confirmarModal(
+        "Reset de estadísticas",
+        "¿Querés borrar TODAS tus estadísticas e historial? Esta acción no se puede deshacer.",
+        "Borrar todo"
+    );
+    if (!ok) return;
+
     historialSorteos = [];
     frecuencia2Cifras = [];
     frecuencia3Cifras = [];
@@ -1109,7 +1116,11 @@ async function cargarJugadaFavorita() {
 async function borrarJugadaFavorita() {
     if (!window.USER_LOGUEADO) return;
 
-    const ok = confirm("¿Borrar tu jugada favorita guardada?");
+    const ok = await confirmarModal(
+        "Borrar jugada favorita",
+        "¿Querés borrar tu jugada favorita guardada? Esta acción no se puede deshacer.",
+        "Borrar"
+    );
     if (!ok) return;
 
     try {
@@ -1282,4 +1293,50 @@ async function abrirModalPerfil() {
     nuevoBtnCancel.addEventListener("click", cerrarModal);
     document.addEventListener("keydown", onKeyDown);
     modal.addEventListener("click", onOverlayClick);
+}
+
+// Modal de confirmación genérico. Devuelve Promise<boolean>.
+function confirmarModal(titulo, mensaje, textoAceptar) {
+    if (!textoAceptar) textoAceptar = "Aceptar";
+
+    return new Promise(function (resolve) {
+        const modal = document.getElementById("confirmModal");
+        const tituloEl = document.getElementById("confirmModalTitulo");
+        const descEl = document.getElementById("confirmModalDesc");
+        const btnOk = document.getElementById("btnConfirmAceptar");
+        const btnCancel = document.getElementById("btnConfirmCancelar");
+
+        tituloEl.textContent = titulo;
+        descEl.textContent = mensaje;
+        btnOk.textContent = textoAceptar;
+
+        modal.classList.remove("hide");
+
+        // Reemplazar botones para limpiar handlers previos
+        const nuevoBtnOk = btnOk.cloneNode(true);
+        btnOk.parentNode.replaceChild(nuevoBtnOk, btnOk);
+        const nuevoBtnCancel = btnCancel.cloneNode(true);
+        btnCancel.parentNode.replaceChild(nuevoBtnCancel, btnCancel);
+
+        function cerrar(resultado) {
+            modal.classList.add("hide");
+            document.removeEventListener("keydown", onKey);
+            modal.removeEventListener("click", onOverlay);
+            resolve(resultado);
+        }
+
+        function onKey(e) {
+            if (e.key === "Escape") cerrar(false);
+            if (e.key === "Enter") cerrar(true);
+        }
+
+        function onOverlay(e) {
+            if (e.target === modal) cerrar(false);
+        }
+
+        nuevoBtnOk.addEventListener("click", function () { cerrar(true); });
+        nuevoBtnCancel.addEventListener("click", function () { cerrar(false); });
+        document.addEventListener("keydown", onKey);
+        modal.addEventListener("click", onOverlay);
+    });
 }

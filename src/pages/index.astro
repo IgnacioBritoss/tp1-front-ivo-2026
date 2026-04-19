@@ -246,6 +246,19 @@ const isLoggedIn = !!session;
           </div>
         </div>
       </div>
+
+      <!-- Modal de confirmación genérico -->
+<div id="confirmModal" class="modalOverlay hide">
+  <div class="modalContent">
+    <h3 id="confirmModalTitulo">Confirmar</h3>
+    <p id="confirmModalDesc" class="modalDesc">¿Estás seguro?</p>
+    <div class="modalActions">
+      <button class="btn-ghost" type="button" id="btnConfirmCancelar">Cancelar</button>
+      <button class="btn-danger" type="button" id="btnConfirmAceptar">Aceptar</button>
+    </div>
+  </div>
+</div>
+
     </main>
 
     <script is:inline define:vars={{ isLoggedIn }}>

@@ -1085,6 +1085,8 @@ body.dark .messageBox.error{
     display:grid;
     grid-template-columns:repeat(4, 1fr);
     gap:10px;
+    max-height:340px;
+    overflow-y:auto;
 }
 
 .avatarOption{

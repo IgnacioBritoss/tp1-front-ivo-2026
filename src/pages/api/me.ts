@@ -4,14 +4,36 @@ import { getUserIdOrNull } from '../../lib/auth-helper';
 
 // Lista cerrada de avatars válidos (URLs de DiceBear como CDN)
 const AVATARS_VALIDOS = [
+  // Bottts - robots
   'https://api.dicebear.com/9.x/bottts/svg?seed=quiniela-1',
   'https://api.dicebear.com/9.x/bottts/svg?seed=quiniela-2',
   'https://api.dicebear.com/9.x/bottts/svg?seed=quiniela-3',
   'https://api.dicebear.com/9.x/bottts/svg?seed=quiniela-4',
+  // Adventurer - personajes estilo cartoon
   'https://api.dicebear.com/9.x/adventurer/svg?seed=britos-1',
   'https://api.dicebear.com/9.x/adventurer/svg?seed=britos-2',
   'https://api.dicebear.com/9.x/adventurer/svg?seed=britos-3',
   'https://api.dicebear.com/9.x/adventurer/svg?seed=britos-4',
+
+  'https://api.dicebear.com/9.x/adventurer/svg?seed=britos-66',
+  'https://api.dicebear.com/9.x/adventurer/svg?seed=britos-77',
+  'https://api.dicebear.com/9.x/adventurer/svg?seed=britos-33',
+  'https://api.dicebear.com/9.x/adventurer/svg?seed=britos-44',
+
+  'https://api.dicebear.com/9.x/adventurer/svg?seed=britos-4266',
+  'https://api.dicebear.com/9.x/adventurer/svg?seed=britos-734',
+  'https://api.dicebear.com/9.x/adventurer/svg?seed=britos-243',
+  'https://api.dicebear.com/9.x/adventurer/svg?seed=britos-44244',
+  // Avataaars - estilo mono color
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=quini-1',
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=quini-2',
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=quini-3',
+  'https://api.dicebear.com/9.x/avataaars/svg?seed=quini-4',
+  // Lorelei - estilo minimal
+  'https://api.dicebear.com/9.x/lorelei/svg?seed=tero-1',
+  'https://api.dicebear.com/9.x/lorelei/svg?seed=tero-2',
+  'https://api.dicebear.com/9.x/lorelei/svg?seed=tero-3',
+  'https://api.dicebear.com/9.x/lorelei/svg?seed=tero-4',
 ];
 
 export const GET: APIRoute = async ({ request }) => {

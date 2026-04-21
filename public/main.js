@@ -209,7 +209,7 @@ function crearFilaHTML(index, data) {
 function crearTabla() {
     let cantidad = parseInt(document.getElementById("cantidad").value);
     if (!cantidad || cantidad < 1) cantidad = 3;
-
+    if (cantidad > 15) cantidad = 15;
     let tbody = document.querySelector("#tabla tbody");
     tbody.innerHTML = "";
 

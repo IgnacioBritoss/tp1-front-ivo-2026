@@ -999,7 +999,6 @@ async function abrirModalFavorita(jugadas) {
             }
         }
     } catch (err) {
-        // Si falla la consulta, seguimos como si no existiera
     }
 
     if (existeFavorita) {
@@ -1015,7 +1014,6 @@ async function abrirModalFavorita(jugadas) {
     modal.classList.remove("hide");
     setTimeout(() => input.focus(), 50);
 
-    // Limpiar handlers previos (por si se abrió varias veces)
     const nuevoBtnOk = btnOk.cloneNode(true);
     btnOk.parentNode.replaceChild(nuevoBtnOk, btnOk);
 
@@ -1138,8 +1136,7 @@ async function borrarJugadaFavorita() {
 }
 
 async function actualizarBotonesFavorita() {
-    // Actualiza el texto de los botones Cargar/Borrar favorita
-    // para mostrar el nombre guardado, o el texto genérico si no hay.
+    
     const btnCargar = document.getElementById("btnCargarFavorita");
     const btnBorrar = document.getElementById("btnBorrarFavorita");
 
@@ -1175,10 +1172,6 @@ async function actualizarBotonesFavorita() {
         btnBorrar.textContent = "Borrar favorita";
     }
 }
-
-// ======================================
-// Perfil del usuario
-// ======================================
 
 async function cargarPerfil() {
     if (!window.USER_LOGUEADO) return;

@@ -9,7 +9,7 @@ Aplicación web para simular jugadas de quiniela con persistencia por usuario en
 ## Integrantes
 
 - **Ignacio Britos** — [@IgnacioBritoss](https://github.com/IgnacioBritoss)
-- *Por completar*
+- **Lucas Park**
 
 ---
 

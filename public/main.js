@@ -209,7 +209,7 @@ function crearFilaHTML(index, data) {
 function crearTabla() {
     let cantidad = parseInt(document.getElementById("cantidad").value);
     if (!cantidad || cantidad < 1) cantidad = 3;
-
+    if (cantidad > 15) cantidad = 15;
     let tbody = document.querySelector("#tabla tbody");
     tbody.innerHTML = "";
 
@@ -419,6 +419,8 @@ function actualizarPreview() {
 
     let cantidadSorteos = parseInt(document.getElementById("cantidadSorteos").value);
     if (!cantidadSorteos || cantidadSorteos < 1) cantidadSorteos = 1;
+    if (cantidadSorteos > 25) cantidadSorteos = 25;
+    document.getElementById("cantidadSorteos").value = cantidadSorteos;
 
     document.getElementById("numerosBoleta").textContent = jugadasGlobal.length;
     document.getElementById("sorteosBoleta").textContent = cantidadSorteos;
@@ -581,6 +583,8 @@ async function jugar() {
 
     let cantidadSorteos = parseInt(document.getElementById("cantidadSorteos").value);
     if (!cantidadSorteos || cantidadSorteos < 1) cantidadSorteos = 1;
+    if (cantidadSorteos > 25) cantidadSorteos = 25;
+    document.getElementById("cantidadSorteos").value = cantidadSorteos;
 
     let costoBoleta = 0;
     for (let i = 0; i < jugadasGlobal.length; i++) {

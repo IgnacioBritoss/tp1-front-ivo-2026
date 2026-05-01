@@ -1,11 +1,4 @@
--- ============================================
--- SCHEMA: Quiniela Britos
--- ============================================
-
--- ========== TABLAS DE AUTH.JS ==========
--- Estas tablas las requiere el adapter de Auth.js
--- para guardar usuarios, sesiones y cuentas de OAuth
-
+-- las tablas 
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   name TEXT,
@@ -44,9 +37,7 @@ CREATE TABLE IF NOT EXISTS verification_token (
   PRIMARY KEY (identifier, token)
 );
 
--- ========== TABLAS PROPIAS DE LA QUINIELA ==========
 
--- Estadísticas generales del usuario (resumenGeneral + frecuencias)
 CREATE TABLE IF NOT EXISTS user_stats (
   user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   boletas_jugadas INT DEFAULT 0,
@@ -57,7 +48,7 @@ CREATE TABLE IF NOT EXISTS user_stats (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Historial de boletas jugadas (solo últimas 20 por usuario)
+-- Historial de boletas jugadas por cada usuario
 CREATE TABLE IF NOT EXISTS boletas (
   id SERIAL PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -73,7 +64,7 @@ CREATE TABLE IF NOT EXISTS boletas (
 CREATE INDEX IF NOT EXISTS idx_boletas_user_created
   ON boletas(user_id, created_at DESC);
 
--- Jugada favorita del usuario (una sola por usuario)
+-- Jugada favorita del usuario
 CREATE TABLE IF NOT EXISTS jugada_favorita (
   user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   nombre TEXT DEFAULT 'Mi jugada favorita',

@@ -69,6 +69,7 @@ function iniciarTema() {
                 localStorage.setItem("instantanea_tema", "light");
             }
             actualizarIconoTema();
+            reaplicarColoresPaleta(); // ← NUEVO: re-aplica los colores al cambiar tema
         });
     }
 }
@@ -1337,3 +1338,89 @@ function confirmarModal(titulo, mensaje, textoAceptar) {
         modal.addEventListener("click", onOverlay);
     });
 }
+
+const COLOR_VARS = {
+    colorPrimary:   '--blue',
+    colorSecondary: '--green',
+    colorAccent:    '--yellow',
+    colorBg:        '--bg',
+    colorText:      '--text',
+};
+
+const COLOR_DEFAULTS = {
+    colorPrimary:   '#2f4ea1',
+    colorSecondary: '#78ad43',
+    colorAccent:    '#e1c94a',
+    colorBg:        '#eef3ea',
+    colorText:      '#172018',
+};
+
+function inyectarEstilosPaleta() {
+    let tag = document.getElementById('paletteStyle');
+    if (!tag) {
+        tag = document.createElement('style');
+        tag.id = 'paletteStyle';
+        document.head.appendChild(tag);
+    }
+
+    let vars = '';
+    for (const id in COLOR_VARS) {
+        const guardado = localStorage.getItem('palette_' + id);
+        if (guardado) {
+            vars += COLOR_VARS[id] + ':' + guardado + ' !important;';
+        }
+    }
+
+    if (vars) {
+        tag.textContent = 'body, body.dark { ' + vars + ' }';
+    } else {
+        tag.remove();
+    }
+}
+
+function aplicarColor(inputId, value) {
+    localStorage.setItem('palette_' + inputId, value);
+    inyectarEstilosPaleta();
+}
+
+function resetearPaleta() {
+    for (const id in COLOR_DEFAULTS) {
+        localStorage.removeItem('palette_' + id);
+        const input = document.getElementById(id);
+        if (input) input.value = COLOR_DEFAULTS[id];
+    }
+    const tag = document.getElementById('paletteStyle');
+    if (tag) tag.remove();
+}
+
+function reaplicarColoresPaleta() {
+    inyectarEstilosPaleta();
+}
+
+function iniciarPaleta() {
+    for (const id in COLOR_VARS) {
+        const input = document.getElementById(id);
+        if (!input) continue;
+
+        const guardado = localStorage.getItem('palette_' + id);
+        if (guardado) {
+            input.value = guardado;
+            aplicarColor(id, guardado);
+        } else {
+            input.value = COLOR_DEFAULTS[id];
+        }
+
+        input.addEventListener('input', function () {
+            aplicarColor(this.id, this.value);
+        });
+    }
+
+    const btnReset = document.getElementById('btnResetPalette');
+    if (btnReset) {
+        btnReset.addEventListener('click', resetearPaleta);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    iniciarPaleta();
+});

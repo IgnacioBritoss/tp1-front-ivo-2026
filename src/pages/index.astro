@@ -17,16 +17,25 @@ const isLoggedIn = !!session;
   <body>
     <div class="themeToggleWrap" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
       {session ? (
-        <>
+        <Fragment>
           <div class="userBadge" id="userBadge">
             <img id="userAvatar" src={session.picture ?? ''} alt="Avatar" />
             <span id="userNombre">{session.name ?? session.email}</span>
           </div>
           <button class="btn-ghost" type="button" id="btnEditarPerfil">Mi perfil</button>
-<a class="btn-ghost" href="/api/auth/logout">Cerrar sesión</a>        </>
+          <a class="btn-ghost" href="/api/auth/logout">Cerrar sesión</a>
+        </Fragment>
       ) : (
         <a class="btn-primary" href="/api/auth/login">Ingresar con Google</a>
       )}
+      <div class="paletteSelectorWrap">
+        <input type="color" id="colorPrimary" title="Color primario" />
+        <input type="color" id="colorSecondary" title="Color secundario" />
+        <input type="color" id="colorAccent" title="Color acento" />
+        <input type="color" id="colorBg" title="Color de fondo" />
+        <input type="color" id="colorText" title="Color de texto" />
+        <button class="btn-ghost paletteResetBtn" id="btnResetPalette" type="button">Resetear</button>
+      </div>
 
       <button id="themeToggle" class="themeToggle" type="button" aria-label="Cambiar tema">
         Claro
@@ -72,11 +81,11 @@ const isLoggedIn = !!session;
                     <button class="btn-ghost" type="button" onclick="limpiarJugadas()">Limpiar boleta</button>
                     <button class="btn-classic" type="button" onclick="cargarJugadaClasica()">Cargar jugada clásica</button>
                     {session && (
-                      <>
+                      <Fragment>
                         <button class="btn-soft" type="button" onclick="guardarJugadaFavorita()">Guardar como favorita</button>
                         <button class="btn-classic" type="button" id="btnCargarFavorita" onclick="cargarJugadaFavorita()">Cargar favorita</button>
                         <button class="btn-ghost" type="button" id="btnBorrarFavorita" onclick="borrarJugadaFavorita()">Borrar favorita</button>
-                      </>
+                      </Fragment>
                     )}
                   </div>
                 </div>
@@ -208,7 +217,6 @@ const isLoggedIn = !!session;
         </div>
       </section>
 
-      <!-- Modal para guardar jugada favorita -->
       <div id="favoritaModal" class="modalOverlay hide">
         <div class="modalContent">
           <h3 id="favoritaModalTitulo">Guardar jugada favorita</h3>
@@ -224,7 +232,6 @@ const isLoggedIn = !!session;
         </div>
       </div>
 
-      <!-- Modal para editar perfil -->
       <div id="perfilModal" class="modalOverlay hide">
         <div class="modalContent modalContentWide">
           <h3>Mi perfil</h3>
@@ -247,17 +254,16 @@ const isLoggedIn = !!session;
         </div>
       </div>
 
-      <!-- Modal de confirmación genérico -->
-<div id="confirmModal" class="modalOverlay hide">
-  <div class="modalContent">
-    <h3 id="confirmModalTitulo">Confirmar</h3>
-    <p id="confirmModalDesc" class="modalDesc">¿Estás seguro?</p>
-    <div class="modalActions">
-      <button class="btn-ghost" type="button" id="btnConfirmCancelar">Cancelar</button>
-      <button class="btn-danger" type="button" id="btnConfirmAceptar">Aceptar</button>
-    </div>
-  </div>
-</div>
+      <div id="confirmModal" class="modalOverlay hide">
+        <div class="modalContent">
+          <h3 id="confirmModalTitulo">Confirmar</h3>
+          <p id="confirmModalDesc" class="modalDesc">¿Estás seguro?</p>
+          <div class="modalActions">
+            <button class="btn-ghost" type="button" id="btnConfirmCancelar">Cancelar</button>
+            <button class="btn-danger" type="button" id="btnConfirmAceptar">Aceptar</button>
+          </div>
+        </div>
+      </div>
 
     </main>
 

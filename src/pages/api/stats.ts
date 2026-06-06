@@ -39,7 +39,7 @@ export const PUT: APIRoute = async ({ request }) => {
   }
 
   const body = await request.json();
-  let { boletas_jugadas, dinero_gastado, dinero_ganado, frecuencia_2_cifras, frecuencia_3_cifras } = body;
+  const { boletas_jugadas, dinero_gastado, dinero_ganado, frecuencia_2_cifras, frecuencia_3_cifras } = body;
 
   // Límites de seguridad
   const MAX_BIGINT = 9_000_000_000_000;  // 9 billones, muy por debajo del límite de BIGINT

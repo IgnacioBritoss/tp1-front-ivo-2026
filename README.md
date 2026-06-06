@@ -66,23 +66,51 @@ Sin iniciar sesión la app funciona en modo local (los datos quedan en `localSto
 
 ```
 quiniela-astro/
+├── .github/
+│   ├── workflows/
+│   │   └── ci.yml              # Pipeline CI/CD (lint → tests → build)
+│   └── PULL_REQUEST_TEMPLATE.md
 ├── sql/
 │   └── schema.sql              # Schema SQL de la base de datos
 ├── src/
 │   ├── lib/
 │   │   ├── db.ts               # Cliente de Neon
-│   │   └── auth-helper.ts      # Helper de sesión + upsert de usuario
+│   │   ├── session.ts          # JWT session
+│   │   ├── auth-helper.ts      # Helper de sesión + upsert de usuario
+│   │   ├── game-logic.ts       # Lógica de negocio pura (testeable)
+│   │   └── __tests__/
+│   │       └── game-logic.test.ts  # Tests unitarios (Vitest)
 │   └── pages/
 │       ├── api/
 │       │   ├── boletas.ts      # GET/POST boletas del usuario
 │       │   └── stats.ts        # GET/PUT/DELETE stats del usuario
 │       └── index.astro         # Página principal con login
+├── tests/
+│   └── e2e/
+│       └── main-flow.spec.ts   # Tests E2E (Playwright)
 ├── public/
 │   ├── main.js                 # Lógica de quiniela del frontend
 │   └── style.css
-├── auth.config.ts              # Configuración de Auth.js + Google
 ├── astro.config.mjs            # Astro en modo SSR con adapter de Vercel
+├── vitest.config.ts            # Configuración de Vitest
+├── playwright.config.ts        # Configuración de Playwright
+├── eslint.config.js            # Configuración de ESLint
+├── CALIDAD.md                  # Estrategia de calidad y CI/CD
 └── package.json
+```
+
+---
+
+## Scripts disponibles
+
+```bash
+npm run dev          # Servidor de desarrollo en localhost:4321
+npm run build        # Build de producción
+npm run lint         # ESLint sobre src/
+npm run test         # Tests unitarios con Vitest
+npm run test:watch   # Tests unitarios en modo watch
+npm run test:coverage # Tests con reporte de cobertura
+npm run test:e2e     # Tests E2E con Playwright (requiere dev server)
 ```
 
 ---
@@ -149,20 +177,31 @@ El schema completo está en [`sql/schema.sql`](./sql/schema.sql).
 
 ---
 
-## Estrategia de ramas
+## Estrategia de ramas y flujo de trabajo
 
-Se sigue un flujo de tres niveles según pide el enunciado:
+### Ramas principales
 
-```
-alumno1-britos  ──►  develop  ──►  main
-```
+- **`main`** — siempre funcional y desplegada en producción. Nadie hace push directo; todo entra por PR.
+- **`develop`** — integración. Las feature branches se mergean aquí primero.
 
-- **`main`** — siempre funcional y desplegada en producción.
-- **`develop`** — integración entre ambos alumnos.
-- **`alumno1-britos`** — rama personal de Ignacio Britos.
-- *(Por crear la rama del segundo integrante cuando se sume al proyecto.)*
+### Naming convention de branches
 
-Los cambios entran a `main` solo vía merge desde `develop`, que a su vez recibe merges desde las ramas personales.
+| Tipo | Prefijo | Ejemplo |
+|------|---------|---------|
+| Feature nueva | `feature/` | `feature/historial-boletas` |
+| Bug fix | `fix/` | `fix/calculo-premio-1-cifra` |
+| CI/CD o infra | `ci/` | `ci/github-actions-pipeline` |
+| Refactor | `refactor/` | `refactor/extraer-game-logic` |
+| Documentación | `docs/` | `docs/calidad-md` |
+
+### Flujo de un cambio
+
+1. Crear un issue describiendo la tarea.
+2. Crear una branch con el prefijo correcto (`feature/...`, `fix/...`, etc.).
+3. Hacer commits con mensajes descriptivos.
+4. Abrir un PR que referencie el issue (`Closes #N`).
+5. El otro integrante revisa y aprueba antes de mergear.
+6. Nunca mergear directamente a `main` ni a `develop`.
 
 ---
 

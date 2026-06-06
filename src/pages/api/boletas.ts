@@ -29,7 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const body = await request.json();
-  let { jugadas, sorteos, cantidadSorteos, costoTotal, premioTotal, aciertos } = body;
+  const { jugadas, sorteos, cantidadSorteos, costoTotal, premioTotal, aciertos } = body;
 
   // Límites de seguridad
   const COSTO_MAX = 50_000_000;  // 50 millones (límite defensivo)

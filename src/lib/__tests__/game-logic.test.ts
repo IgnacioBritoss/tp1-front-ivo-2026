@@ -103,4 +103,33 @@ describe('calcularPremioDeUnSorteo', () => {
     expect(aciertos).toHaveLength(1);
     expect(aciertos[0].tipo).toBe('Cabeza');
   });
+
+  it('acierto "a los 10" en 3 cifras paga 50x la apuesta de diez', () => {
+    const jugadas: Jugada[] = [
+      { numero: 123, cifras: 3, cabeza: 0, cinco: 0, diez: 100 },
+    ];
+    // El 123 aparece en posicion 7 (dentro de los 10, fuera de los 5) → solo "a los 10"
+    const sorteo = [456, 789, 321, 654, 987, 111, 222, 123, 444, 555];
+    const { premio, aciertos } = calcularPremioDeUnSorteo(jugadas, sorteo);
+
+    expect(premio).toBe(5000); // 100 * 50
+    expect(aciertos).toHaveLength(1);
+    expect(aciertos[0].tipo).toBe('A los 10');
+  });
+
+  it('varias jugadas acumulan el premio total y todos los aciertos correctamente', () => {
+    const jugadas: Jugada[] = [
+      // Jugada 1: gana cabeza en 3 cifras → 100 * 600 = 60000
+      { numero: 100, cifras: 3, cabeza: 100, cinco: 0, diez: 0 },
+      // Jugada 2: gana "a los 5" y "a los 10" en 2 cifras
+      // sorteo % 100 = [0, 50, 50, 50, 50, 50, 50, 50, 50, 50]
+      // cinco: 200 * 14 = 2800 | diez: 100 * 7 = 700
+      { numero: 50, cifras: 2, cabeza: 0, cinco: 200, diez: 100 },
+    ];
+    const sorteo = [100, 150, 250, 350, 450, 550, 650, 750, 850, 950];
+    const { premio, aciertos } = calcularPremioDeUnSorteo(jugadas, sorteo);
+
+    expect(premio).toBe(63500); // 60000 + 2800 + 700
+    expect(aciertos).toHaveLength(3);
+  });
 });

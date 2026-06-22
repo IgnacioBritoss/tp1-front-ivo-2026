@@ -1,5 +1,7 @@
 # Quiniela Britos
 
+![CI](https://github.com/IgnacioBritoss/tp1-front-ivo-2026/actions/workflows/ci.yml/badge.svg)
+
 Aplicación web para simular jugadas de quiniela con persistencia por usuario en la nube. Trabajo práctico de aplicación serverless.
 
 **URL de producción:** [https://tp1-front-ivo-2026.vercel.app](https://tp1-front-ivo-2026.vercel.app)
@@ -215,13 +217,15 @@ El schema completo está en [`sql/schema.sql`](./sql/schema.sql).
 - [x] Persistencia de boletas y estadísticas por usuario.
 - [x] Historial de últimas 20 boletas.
 
-### Pendiente para la entrega final
-- [x] Jugada favorita personalizada del usuario (ya está el schema, falta UI + endpoints).
-- [x] Vista de historial de boletas anteriores en la UI.
-- [x] Edición de datos del usuario (nombre, avatar).
-- [x] Utilización de un CDN para imágenes de perfil.
-- [x] Suma del segundo integrante al proyecto.
-- [x] Uso consistente de Pull Requests para todos los merges.
+### TP3 — Calidad y CI/CD ✅
+
+- [x] Pipeline de GitHub Actions: lint → tests unitarios → E2E → build.
+- [x] 11 tests unitarios con Vitest sobre la lógica de premios de la quiniela.
+- [x] 6 tests E2E con Playwright sobre el flujo principal sin login.
+- [x] ESLint configurado para `src/`.
+- [x] `CALIDAD.md` con estrategia de calidad documentada.
+- [x] PR template con checklist de revisión.
+- [x] Issue trackeado, PR con revisión real del compañero y merge a main.
 
 ---
 

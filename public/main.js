@@ -519,6 +519,8 @@ function mostrarSorteos() {
     lista.innerHTML = html;
 }
 
+// NOTA: esta funcion esta duplicada en src/lib/game-logic.ts (version testeable).
+// Si modificas la logica de premios aca, actualizas tambien game-logic.ts y viceversa.
 function calcularPremioDeUnSorteo(jugadas, sorteo) {
     let premio = 0;
     let aciertos = [];
